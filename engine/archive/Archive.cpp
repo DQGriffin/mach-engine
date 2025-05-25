@@ -1,0 +1,150 @@
+//
+// Created by Dquavius Griffin on 5/19/25.
+//
+
+#include "Archive.h"
+#include "../logging/logging.h"
+#include <unordered_map>
+
+mach::archive::Archive::Archive()
+{
+}
+
+mach::archive::Archive::Archive(const mach::fs::Path &path)
+{
+    this->file.open(path.toString(), std::ios::binary);
+    if (!this->file.is_open()) return;
+}
+
+mach::archive::Archive::~Archive()
+{
+    this->file.close();
+    LOG_INFO("closed file");
+}
+
+bool mach::archive::Archive::open()
+{
+    if (!this->file.is_open()) return false;
+
+    // read header
+    char magic[4];
+    this->file.read(magic, 4);
+    if (std::string(magic, 4) != "MPAK")
+    {
+        LOG_ERROR("archive file is not valid");
+        return false;
+    }
+
+    uint32_t version;
+    this->file.read(reinterpret_cast<char*>(&version), 4);
+    if (version != 1)
+    {
+        LOG_ERROR("archive file version is not supported");
+        return false;
+    }
+
+    uint64_t toc_offset;
+    this->file.read(reinterpret_cast<char*>(&toc_offset), 8);
+
+    uint32_t file_count;
+    this->file.read(reinterpret_cast<char*>(&file_count), 4);
+
+    this->file.seekg(toc_offset);
+    for (uint32_t i = 0; i < file_count; i++)
+    {
+        uint16_t name_len;
+        this->file.read(reinterpret_cast<char*>(&name_len), sizeof(name_len));
+
+        std::string name(name_len, '\0');
+        this->file.read(name.data(), name_len);
+
+        TocEntry entry;
+        entry.name = name;
+        this->file.read(reinterpret_cast<char*>(&entry.offset), 8);
+        this->file.read(reinterpret_cast<char*>(&entry.size), 8);
+        this->toc[name] = entry;
+    }
+
+    return true;
+}
+
+void mach::archive::Archive::close()
+{
+    this->file.close();
+}
+
+std::vector<char> mach::archive::Archive::get(const std::string &name)
+{
+    if (!this->file.is_open()) throw std::runtime_error("MACH::ARCHIVE::Archive::get::get. File is closed");
+    auto it = this->toc.find(name);
+    if (it == this->toc.end()) throw std::runtime_error("MACH::ARCHIVE::Archive::get::get");
+
+    const TocEntry& entry = it->second;
+    this->file.seekg(entry.offset);
+    std::vector<char> buffer(entry.size);
+    this->file.read(buffer.data(), entry.size);
+    return buffer;
+}
+
+void mach::archive::Archive::createArchive(const std::string& outputPath, const mach::fs::Path& inputPath, bool recursive)
+{
+    std::ofstream out(outputPath, std::ios::binary);
+    if (!out)
+    {
+        throw std::runtime_error("Failed to create output file");
+    }
+
+    // Write placeholder header
+    out.write("MPAK", 4);
+    uint32_t version = 1;
+    out.write(reinterpret_cast<char*>(&version), 4);
+
+    uint64_t toc_offset_placeholder = 0;
+    out.write(reinterpret_cast<char*>(&toc_offset_placeholder), 8);
+
+    uint32_t file_count_placeholder = 0;
+    out.write(reinterpret_cast<char*>(&file_count_placeholder), 4);
+
+    std::vector<TocEntry> toc;
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath.toString()))
+    {
+        if (!entry.is_regular_file()) continue;
+
+        std::ifstream in(entry.path(), std::ios::binary);
+        if (!in)
+        {
+            throw std::runtime_error("Failed to open input file");
+        }
+
+        TocEntry tocEntry;
+        tocEntry.name = std::filesystem::relative(entry.path(), inputPath.toString()).generic_string();
+        tocEntry.offset = out.tellp();
+
+        in.seekg(0, std::ios::end);
+        tocEntry.size = in.tellg();
+        in.seekg(0);
+
+        out << in.rdbuf();
+        toc.push_back(tocEntry);
+    }
+
+    // write TOC
+    uint64_t toc_offset = out.tellp();
+    for (const auto& entry : toc)
+    {
+        uint16_t name_len = static_cast<uint16_t>(entry.name.size());
+        out.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
+        out.write(entry.name.data(), name_len);
+        out.write(reinterpret_cast<const char*>(&entry.offset), sizeof(entry.offset));
+        out.write(reinterpret_cast<const char*>(&entry.size), sizeof(entry.size));
+    }
+
+    // update header
+    out.seekp(8);
+    out.write(reinterpret_cast<const char*>(&toc_offset), sizeof(toc_offset));
+
+    uint32_t file_count = static_cast<uint32_t>(toc.size());
+    out.write(reinterpret_cast<const char*>(&file_count), sizeof(file_count));
+
+    out.close();
+}
