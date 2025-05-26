@@ -86,6 +86,18 @@ std::vector<char> mach::archive::Archive::get(const std::string &name)
     return buffer;
 }
 
+void mach::archive::Archive::unpack(std::string rootDir)
+{
+    std::cout << "Unpacking archive" << std::endl;
+    for (const auto& pair : this->toc) {
+        std::cout << "Processing " << pair.first << std::endl;
+        auto name = pair.first;
+        std::string outputPath = rootDir + name;
+        std::vector<char> data = this->get(name);
+        this->write(outputPath, data);
+    }
+}
+
 void mach::archive::Archive::createArchive(const std::string& outputPath, const mach::fs::Path& inputPath, bool recursive)
 {
     std::ofstream out(outputPath, std::ios::binary);
@@ -147,4 +159,25 @@ void mach::archive::Archive::createArchive(const std::string& outputPath, const 
     out.write(reinterpret_cast<const char*>(&file_count), sizeof(file_count));
 
     out.close();
+}
+
+void mach::archive::Archive::write(const std::string &name, const std::vector<char> &data)
+{
+    try
+    {
+        std::filesystem::path filePath = name;
+        std::filesystem::create_directories(filePath.parent_path());
+
+        std::ofstream out(filePath.string(), std::ios::binary);
+        if (!out)
+        {
+            throw std::runtime_error("Failed to create output file");
+        }
+        out.write(reinterpret_cast<const char*>(data.data()), data.size());
+        out.close();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 }

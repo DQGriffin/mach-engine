@@ -33,7 +33,11 @@ namespace mach::archive
         bool open();
         void close();
         std::vector<char> get(const std::string& name);
+        void unpack(std::string rootDir);
         static void createArchive(const std::string& outputPath, const mach::fs::Path& inputPath, bool recursive);
+
+    private:
+        void write(const std::string& name, const std::vector<char>& data);
 
     };
 }
