@@ -5,6 +5,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include <functional>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -20,6 +21,9 @@ namespace mach
     class Window {
     private:
         GLFWwindow* window;
+        using MousePositionCallback = std::function<void(int xpos, int ypos)>;
+        MousePositionCallback mousePositionCallback;
+
     public:
         Window(int width, int height, const char* title);
         ~Window();
@@ -36,8 +40,17 @@ namespace mach
         void close();
         bool isKeyPressed(int key);
         void captureMouse();
+        void onMouseMoved(int x, int y);
+        static void registerMousePositionCallback(Window& window, MousePositionCallback callback);
     private:
         // void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+        static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+            // Get 'this' pointer
+            auto* handler = static_cast<Window*>(glfwGetWindowUserPointer(window));
+            if (handler) {
+                handler->onMouseMoved(xpos, ypos);
+            }
+        }
     };
 }
 

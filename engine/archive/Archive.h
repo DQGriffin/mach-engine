@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
+#include <assimp/Importer.hpp>
 
 
 namespace mach::archive
@@ -18,6 +19,9 @@ namespace mach::archive
         std::string name;
         uint64_t offset;
         uint64_t size;
+        uint64_t compressedSize;
+        uint64_t uncompressedSize;
+        bool compressed;
     };
 
     class Archive

@@ -4,6 +4,7 @@
 
 #include "Window.h"
 
+#include "../input/input.h"
 #include "../logging/logging.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -37,6 +38,9 @@ mach::Window::Window(int width, int height, const char *title)
     glViewport(0, 0, 800, 600);
 
     glfwSetFramebufferSizeCallback(this->window, framebuffer_size_callback);
+
+    glfwSetWindowUserPointer(window, this);
+    glfwSetCursorPosCallback(this->window, Window::mouseCallback);
 
 #ifdef __APPLE__
     // for retina display the framebuffer size is larger than the window size
@@ -118,4 +122,14 @@ bool mach::Window::isKeyPressed(int key)
 void mach::Window::captureMouse()
 {
     glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void mach::Window::onMouseMoved(int x, int y)
+{
+    this->mousePositionCallback(x, y);
+}
+
+void mach::Window::registerMousePositionCallback(Window &window, MousePositionCallback callback)
+{
+    window.mousePositionCallback = callback;
 }

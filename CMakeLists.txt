@@ -21,7 +21,10 @@ add_library(mach STATIC library.cpp
         engine/rendering/texture/texture.cpp
         engine/rendering/texture/texture.h
         engine/assets/AssetManager.cpp
-        engine/assets/AssetManager.h)
+        engine/assets/AssetManager.h
+        engine/compression/lz4.cpp
+        engine/compression/lz4.h
+        engine/compression/compress.h)
 
 add_executable(testbed
         testbed/main.cpp)
@@ -30,12 +33,14 @@ target_include_directories(mach PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glfw/include
         ${CMAKE_SOURCE_DIR}/dependencies/glm/include
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
+        ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
 )
 
 target_include_directories(testbed PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glfw/include
         ${CMAKE_SOURCE_DIR}/dependencies/glm/include
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
+        ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
 )
 
 target_link_libraries(testbed PRIVATE mach)
@@ -53,6 +58,7 @@ if(APPLE)
 
     target_link_libraries(mach PUBLIC
             ${CMAKE_SOURCE_DIR}/dependencies/glfw/lib/libglfw3.a
+            ${CMAKE_SOURCE_DIR}/dependencies/assimp/lib/libassimpd.5.4.3.dylib
             ${OPENGL_gl_LIBRARY}
             ${COCOA_FRAMEWORK}
             ${IOKIT_FRAMEWORK}

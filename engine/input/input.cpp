@@ -20,6 +20,35 @@ void mach::input::InputEngine::registerCallback(Callback func)
 {
 }
 
+void mach::input::InputEngine::registerMousePositionCallback(MousePositionCallback func, CallbackPriority priority)
+{
+    MousePositionCallbackEntry entry{func, priority};
+    auto it = std::lower_bound(
+        mousePositionCallbacks.begin(),
+        mousePositionCallbacks.end(),
+        entry,
+        [](const MousePositionCallbackEntry& e1, const MousePositionCallbackEntry& e2) {
+            return static_cast<int>(e1.priority) < static_cast<int>(e2.priority);
+        }
+    );
+
+    this->mousePositionCallbacks.insert(it, std::move(entry));
+}
+
+void mach::input::InputEngine::windowMousePositionCallback(int xpos, int ypos)
+{
+    LOG_DEBUG(std::format("Mouse moved to: x:{}, y:{}", xpos, ypos));
+    for (const auto& entry : this->mousePositionCallbacks)
+    {
+        // callback returns true if it wants to stop propogation
+        if (entry.callback(xpos, ypos))
+        {
+            LOG_INFO(std::format("Mouse position event consumed by {} layer callback", callbackPriorityToString(entry.priority)));
+            break;
+        }
+    }
+}
+
 void mach::input::InputEngine::processInput()
 {
     for (int i = 32; i <= MACH_KEY_GRAVE_ACCENT; i++)
@@ -65,4 +94,14 @@ void mach::input::InputEngine::handleKeyReleased(int keyCode)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - keyPressStartTime);
     this->pressedKeys.erase(keyCode);
     LOG_DEBUG("Key released. Removed key from key pressed map");
+}
+
+void mach::input::InputEngine::registerInternalMousePositionCallback()
+{
+
+}
+
+void mach::input::InputEngine::onMouseMoved(double xpos, double ypos)
+{
+    LOG_DEBUG("On mouse moved");
 }
