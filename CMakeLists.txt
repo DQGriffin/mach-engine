@@ -24,7 +24,19 @@ add_library(mach STATIC library.cpp
         engine/assets/AssetManager.h
         engine/compression/lz4.cpp
         engine/compression/lz4.h
-        engine/compression/compress.h)
+        engine/compression/compress.h
+        engine/time/time.h
+        engine/rendering/FpsCounter.h
+        engine/rendering/FrameLimiter.h
+        engine/rendering/shader/Shader.h
+        engine/external/stb_image.h
+        engine/rendering/camera/Camera.h
+        engine/rendering/primatives/vertex.h
+        engine/rendering/primatives/Texture.h
+        engine/rendering/primatives/Mesh.cpp
+        engine/rendering/primatives/Mesh.h
+        engine/rendering/primatives/Model.cpp
+        engine/rendering/primatives/Model.h)
 
 add_executable(testbed
         testbed/main.cpp)

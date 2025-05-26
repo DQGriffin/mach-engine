@@ -41,6 +41,7 @@ mach::Window::Window(int width, int height, const char *title)
 
     glfwSetWindowUserPointer(window, this);
     glfwSetCursorPosCallback(this->window, Window::mouseCallback);
+    glEnable(GL_DEPTH_TEST);
 
 #ifdef __APPLE__
     // for retina display the framebuffer size is larger than the window size
@@ -74,6 +75,11 @@ void mach::Window::setSize(int width, int height)
 void mach::Window::setSize(mach::ivec2 size)
 {
     glfwSetWindowSize(this->window, size.x, size.y);
+}
+
+void mach::Window::setVSync(bool enabled)
+{
+    glfwSwapInterval(enabled);
 }
 
 void mach::Window::maximize()
@@ -114,7 +120,7 @@ void mach::Window::close()
     glfwTerminate();
 }
 
-bool mach::Window::isKeyPressed(int key)
+bool mach::Window::isKeyPressed(int key) const
 {
     return glfwGetKey(this->window, key) == GLFW_PRESS;
 }

@@ -4,6 +4,7 @@
 
 #ifndef WINDOW_H
 #define WINDOW_H
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <functional>
 #include <iostream>
@@ -31,6 +32,7 @@ namespace mach
         void setClearColor(mach::Color color);
         void setSize(int width, int height);
         void setSize(mach::ivec2 size);
+        void setVSync(bool enabled);
         void maximize();
         mach::ivec2 getSize() const;
         bool shouldClose();
@@ -38,7 +40,7 @@ namespace mach
         void swapBuffers();
         void pollEvents();
         void close();
-        bool isKeyPressed(int key);
+        bool isKeyPressed(int key) const;
         void captureMouse();
         void onMouseMoved(int x, int y);
         static void registerMousePositionCallback(Window& window, MousePositionCallback callback);
