@@ -13,11 +13,13 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
 mach::renderer::Model::Model(char *path)
 {
     loadModel(path);
+    computeBounds();
 }
 
 mach::renderer::Model::Model(std::string path)
 {
     loadModel(path);
+    computeBounds();
 }
 
 void mach::renderer::Model::Draw(Shader &shader)
@@ -25,6 +27,17 @@ void mach::renderer::Model::Draw(Shader &shader)
     for (unsigned int i = 0; i < meshes.size(); i++)
     {
         meshes[i].Draw(shader);
+    }
+}
+
+void mach::renderer::Model::computeBounds()
+{
+    bounds = AABB(); // reset
+
+    for (const Mesh& mesh : meshes) {
+        for (const Vertex& vertex : mesh.vertices) {
+            bounds.expandToFit(glm::vec3(vertex.Position));
+        }
     }
 }
 
