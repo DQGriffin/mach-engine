@@ -37,7 +37,6 @@ void mach::input::InputEngine::registerMousePositionCallback(MousePositionCallba
 
 void mach::input::InputEngine::windowMousePositionCallback(int xpos, int ypos)
 {
-    LOG_DEBUG(std::format("Mouse moved to: x:{}, y:{}", xpos, ypos));
     for (const auto& entry : this->mousePositionCallbacks)
     {
         // callback returns true if it wants to stop propogation

@@ -8,6 +8,12 @@
 #include "../engine/color/color.h"
 #include "../engine/input/input.h"
 #include "../engine/assets/AssetManager.h"
+#include "../engine/ecs/Scene.h"
+#include "../engine/ecs/Entity.h"
+#include "../engine/ecs/components/MeshRender.h"
+#include "../engine/ecs/components/Transform.h"
+#include "../engine/ecs/systems/MeshRendererSystem.h"
+#include "../engine/external/entt.h"
 #include "../engine/logging/logging.h"
 #include "../engine/rendering/FpsCounter.h"
 #include "../engine/rendering/FrameLimiter.h"
@@ -38,13 +44,15 @@ void processInput(const mach::Window& window);
 
 int main()
 {
-    mach::Window window = mach::Window(800, 600, "Hello World");
-    window.captureMouse();
+    mach::Window window = mach::Window(800, 600, "Mach 2 Testbed");
+    // window.captureMouse();
     window.setVSync(false);
     mach::Color backgroundColor = mach::Color(0.1f, 0.1f, 0.1f);
     mach::input::InputEngine inputEngine = mach::input::InputEngine(std::make_shared<mach::Window>(window));
     mach::FpsCounter fpsCounter;
     mach::FrameLimiter frameLimiter;
+
+    mach::ecs::Scene scene;
 
     mach::Window::registerMousePositionCallback(window, [&inputEngine](int xpos, int ypos) {
         inputEngine.windowMousePositionCallback(xpos, ypos);
@@ -83,6 +91,14 @@ int main()
 
     mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/backpack/backpack.obj");
 
+    auto backpackEntity = scene.createEntity("Backpack 1");
+    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+
+    auto backpackEntity2 = scene.createEntity("Backpack 2");
+    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+
     while(!window.shouldClose()) {
         fpsCounter.tick();
         LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
@@ -106,7 +122,7 @@ int main()
 
         lightingShader.setInt("material.diffuse", 0);
         lightingShader.setInt("material.specular", 1);
-        lightingShader.setFloat("material.shininess", 32.0f);
+        lightingShader.setFloat("material.shininess", 3.0f);
 
         // set directional light values
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -166,7 +182,9 @@ int main()
         int projectionLoc = glGetUniformLocation(lightingShader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        backpackModel.Draw(lightingShader);
+        // backpackModel.Draw(lightingShader);
+        // mach::ecs::systems::render(registry);
+        scene.update(deltaTime);
 
         // draw light cube
         // lightCubeShader.use();

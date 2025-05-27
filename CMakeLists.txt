@@ -36,7 +36,23 @@ add_library(mach STATIC library.cpp
         engine/rendering/primatives/Mesh.cpp
         engine/rendering/primatives/Mesh.h
         engine/rendering/primatives/Model.cpp
-        engine/rendering/primatives/Model.h)
+        engine/rendering/primatives/Model.h
+        engine/external/entt.h
+        engine/ecs/components/Transform.h
+        engine/ecs/components/MeshRender.h
+        engine/ecs/registry/Registry.cpp
+        engine/ecs/registry/Registry.h
+        engine/ecs/systems/MeshRendererSystem.h
+        engine/math/mat.h
+        engine/ecs/Scene.cpp
+        engine/ecs/Scene.h
+        engine/ecs/components/Name.h
+        engine/ecs/Entity.h
+        engine/ecs/Entity.cpp
+        engine/serialization/SceneSerializer.h
+        engine/serialization/BinarySceneSerializer.cpp
+        engine/serialization/BinarySceneSerializer.h
+)
 
 add_executable(testbed
         testbed/main.cpp)

@@ -22,6 +22,7 @@ namespace mach::renderer
 
     public:
         Model(char* path);
+        Model(std::string path);
         void Draw(Shader& shader);
 
     private:

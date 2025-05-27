@@ -1,0 +1,38 @@
+//
+// Created by Dquavius Griffin on 5/26/25.
+//
+
+#pragma once
+#ifndef ENTITY_H
+#define ENTITY_H
+#include "../external/entt.h"
+#include "Scene.h"
+
+namespace mach::ecs
+{
+    class Scene;
+
+    class Entity {
+    public:
+        Entity() = default;
+        Entity(entt::entity handle, Scene* scene);
+
+        template<typename T, typename... Args>
+    T& addComponent(Args&&... args);
+
+        template<typename T>
+        bool hasComponent() const;
+
+        template<typename T>
+        T& getComponent();
+
+        entt::entity handle() const { return m_Entity; }
+        bool isValid() const;
+
+    private:
+        entt::entity m_Entity = entt::null;
+        Scene* m_Scene = nullptr;
+    };
+}
+
+#endif //ENTITY_H

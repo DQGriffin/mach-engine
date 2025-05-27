@@ -15,6 +15,11 @@ mach::renderer::Model::Model(char *path)
     loadModel(path);
 }
 
+mach::renderer::Model::Model(std::string path)
+{
+    loadModel(path);
+}
+
 void mach::renderer::Model::Draw(Shader &shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
