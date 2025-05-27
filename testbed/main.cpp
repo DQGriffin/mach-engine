@@ -45,7 +45,7 @@ void processInput(const mach::Window& window);
 int main()
 {
     mach::Window window = mach::Window(800, 600, "Mach 2 Testbed");
-    // window.captureMouse();
+    window.captureMouse();
     window.setVSync(false);
     mach::Color backgroundColor = mach::Color(0.1f, 0.1f, 0.1f);
     mach::input::InputEngine inputEngine = mach::input::InputEngine(std::make_shared<mach::Window>(window));
@@ -79,6 +79,14 @@ int main()
         return false;
     });
 
+    inputEngine.registerKeyPressCallback([&window](int key, int duration) ->bool {
+        if (key == MACH_KEY_PERIOD)
+        {
+            window.setMouseCaptured(!window.getMouseCaptureState());
+        }
+        return true;
+    }, mach::input::CallbackPriority::Gameplay, mach::input::KeyEventTrigger::Released);
+
     glm::vec3 pointLightPositions[] = {
         glm::vec3( 0.7f, 0.2f, 2.0f),
         glm::vec3( 2.3f, -3.3f, -4.0f),
@@ -89,7 +97,7 @@ int main()
     Shader lightingShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/fragment.glsl");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
 
-    mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/backpack/backpack.obj");
+    mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
 
     auto backpackEntity = scene.createEntity("Backpack 1");
     backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -101,7 +109,7 @@ int main()
 
     while(!window.shouldClose()) {
         fpsCounter.tick();
-        LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
+        // LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
         processInput(window);
         inputEngine.processInput();
 

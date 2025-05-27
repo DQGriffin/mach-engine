@@ -125,14 +125,34 @@ bool mach::Window::isKeyPressed(int key) const
     return glfwGetKey(this->window, key) == GLFW_PRESS;
 }
 
+void mach::Window::setMouseCaptured(bool capture)
+{
+    if (capture)
+        this->captureMouse();
+    else
+        this->releaseMouse();
+}
+
 void mach::Window::captureMouse()
 {
     glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    this->isMouseCaptured = true;
+}
+
+void mach::Window::releaseMouse()
+{
+    glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    this->isMouseCaptured = false;
 }
 
 void mach::Window::onMouseMoved(int x, int y)
 {
     this->mousePositionCallback(x, y);
+}
+
+bool mach::Window::getMouseCaptureState() const
+{
+    return this->isMouseCaptured;
 }
 
 void mach::Window::registerMousePositionCallback(Window &window, MousePositionCallback callback)

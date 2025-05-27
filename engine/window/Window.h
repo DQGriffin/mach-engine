@@ -24,6 +24,7 @@ namespace mach
         GLFWwindow* window;
         using MousePositionCallback = std::function<void(int xpos, int ypos)>;
         MousePositionCallback mousePositionCallback;
+        bool isMouseCaptured = false;
 
     public:
         Window(int width, int height, const char* title);
@@ -41,8 +42,11 @@ namespace mach
         void pollEvents();
         void close();
         bool isKeyPressed(int key) const;
+        void setMouseCaptured(bool capture);
         void captureMouse();
+        void releaseMouse();
         void onMouseMoved(int x, int y);
+        bool getMouseCaptureState() const;
         static void registerMousePositionCallback(Window& window, MousePositionCallback callback);
     private:
         // void framebuffer_size_callback(GLFWwindow* window, int width, int height);

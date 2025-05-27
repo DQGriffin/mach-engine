@@ -16,8 +16,19 @@ mach::input::InputEngine::~InputEngine()
 {
 }
 
-void mach::input::InputEngine::registerCallback(Callback func)
+void mach::input::InputEngine::registerKeyPressCallback(KeyPressCallback func, CallbackPriority priority, KeyEventTrigger type)
 {
+    KeyPressCallbackEntry entry{func, priority, type};
+    auto it = std::lower_bound(
+        keyPressCallbacks.begin(),
+        keyPressCallbacks.end(),
+        entry,
+        [](const KeyPressCallbackEntry& e1, const KeyPressCallbackEntry& e2) {
+            return static_cast<int>(e1.priority) < static_cast<int>(e2.priority);
+        }
+    );
+
+    this->keyPressCallbacks.insert(it, std::move(entry));
 }
 
 void mach::input::InputEngine::registerMousePositionCallback(MousePositionCallback func, CallbackPriority priority)
@@ -55,10 +66,12 @@ void mach::input::InputEngine::processInput()
         if (this->window->isKeyPressed(i))
         {
             this->handleKeyPressed(i);
+            this->notifyKeyPressSubscribers(i, KeyEventTrigger::Pressed);
         }
         else if (this->pressedKeys.contains(i))
         {
             this->handleKeyReleased(i);
+            this->notifyKeyPressSubscribers(i, KeyEventTrigger::Released);
         }
     }
 }
@@ -83,7 +96,7 @@ void mach::input::InputEngine::handleKeyPressed(int keyCode)
     // Later we'll use this value to calculate how long the key was pressed.
     auto now = std::chrono::high_resolution_clock::now();
     this->pressedKeys[keyCode] = now;
-    LOG_DEBUG("Added key to key pressed map");
+    // LOG_DEBUG("Added key to key pressed map");
 }
 
 void mach::input::InputEngine::handleKeyReleased(int keyCode)
@@ -92,7 +105,7 @@ void mach::input::InputEngine::handleKeyReleased(int keyCode)
     auto keyPressStartTime = this->pressedKeys[keyCode];
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - keyPressStartTime);
     this->pressedKeys.erase(keyCode);
-    LOG_DEBUG("Key released. Removed key from key pressed map");
+    // LOG_DEBUG("Key released. Removed key from key pressed map");
 }
 
 void mach::input::InputEngine::registerInternalMousePositionCallback()
@@ -103,4 +116,20 @@ void mach::input::InputEngine::registerInternalMousePositionCallback()
 void mach::input::InputEngine::onMouseMoved(double xpos, double ypos)
 {
     LOG_DEBUG("On mouse moved");
+}
+
+void mach::input::InputEngine::notifyKeyPressSubscribers(int key, KeyEventTrigger trigger)
+{
+    for (const auto& entry : this->keyPressCallbacks)
+    {
+        if (entry.type == trigger)
+        {
+            // callback returns true if it wants to stop propagation
+            if (entry.callback(key, 0))
+            {
+                LOG_DEBUG(std::format("Key press event consumed by {} layer callback", callbackPriorityToString(entry.priority)));
+                break;
+            }
+        }
+    }
 }

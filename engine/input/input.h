@@ -17,6 +17,7 @@
 namespace mach::input
 {
     using MousePositionCallback = std::function<bool(int xpos, int ypos)>;
+    using KeyPressCallback = std::function<bool(int keycode, int keyPressDuration)>;
     enum class CallbackPriority
     {
         EngineDebug = 0,
@@ -25,6 +26,13 @@ namespace mach::input
         Scripting = 3,
         Gameplay = 4,
         Cutscene = 5,
+    };
+
+    enum class KeyEventTrigger
+    {
+        Pressed = 0,
+        Released = 1,
+        Repeat = 2,
     };
 
     inline std::string callbackPriorityToString(CallbackPriority priority)
@@ -47,19 +55,26 @@ namespace mach::input
         CallbackPriority priority;
     };
 
+    struct KeyPressCallbackEntry
+    {
+        KeyPressCallback callback;
+        CallbackPriority priority;
+        KeyEventTrigger type;
+    };
+
     class InputEngine {
     private:
-        using Callback = std::function<void(int keycode, int keyPressDuration)>;
 
         std::unordered_map<int, std::chrono::time_point<std::chrono::steady_clock>> pressedKeys;
         std::unordered_map<const char*, int> bindings;
         std::shared_ptr<mach::Window> window;
         std::vector<MousePositionCallbackEntry> mousePositionCallbacks;
+        std::vector<KeyPressCallbackEntry> keyPressCallbacks;
 
     public:
         InputEngine(std::shared_ptr<mach::Window> window);
         ~InputEngine();
-        void registerCallback(Callback func);
+        void registerKeyPressCallback(KeyPressCallback func, CallbackPriority priority = CallbackPriority::Gameplay, KeyEventTrigger type = KeyEventTrigger::Pressed);
         void registerMousePositionCallback(MousePositionCallback func, CallbackPriority priority = CallbackPriority::Gameplay);
         void windowMousePositionCallback(int xpos, int ypos);
         void processInput();
@@ -72,6 +87,7 @@ namespace mach::input
         void handleKeyReleased(int keyCode);
         void registerInternalMousePositionCallback();
         void onMouseMoved(double xpos, double ypos);
+        void notifyKeyPressSubscribers(int key, KeyEventTrigger trigger);
     };
 }
 
