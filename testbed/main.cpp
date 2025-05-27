@@ -2,6 +2,8 @@
 // Created by Dquavius Griffin on 5/18/25.
 //
 
+#include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "../engine/archive/Archive.h"
 #include "../engine/window/Window.h"
 #include "../engine/math/vec.h"
@@ -13,6 +15,7 @@
 #include "../engine/ecs/components/MeshRender.h"
 #include "../engine/ecs/components/Transform.h"
 #include "../engine/ecs/systems/MeshRendererSystem.h"
+#include "../engine/ecs/systems/PhysicsSystem.h"
 #include "../engine/external/entt.h"
 #include "../engine/logging/logging.h"
 #include "../engine/rendering/FpsCounter.h"
@@ -22,12 +25,11 @@
 #include "../engine/external/stb_image.h"
 #include "../engine/rendering/primatives/Mesh.h"
 #include "../engine/rendering/primatives/Model.h"
+#include "../engine/rendering/debug/DebugLineRenderer.h"
+#include "../engine/rendering/debug/BulletDebugDrawer.h"
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+// Camera camera(glm::vec3(0.0f, 1.0f, 7.0f));
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float lastX = 400;
@@ -52,13 +54,35 @@ int main()
     mach::FpsCounter fpsCounter;
     mach::FrameLimiter frameLimiter;
 
+    bool physicsPaused = false;
+
+    Shader debugLineShader("/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/vertex.glsl", "/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/fragment.glsl");
+    mach::renderer::DebugLineRenderer lineRenderer(&debugLineShader);
+
+    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+    btDefaultCollisionConfiguration* config = new btDefaultCollisionConfiguration();
+    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(config);
+    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver();
+
+    btDiscreteDynamicsWorld* world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, config);
+    world->setGravity(btVector3(0, -9.81, 0));
+
+    auto* drawer = new mach::renderer::BulletDebugDrawer(&lineRenderer);
+    // drawer->renderer = &debugLineRenderer;
+    world->setDebugDrawer(drawer);
+    drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+
     mach::ecs::Scene scene;
+    scene.inputEngine = &inputEngine;
+    auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
+    scene.activeCamera = &cameraEntity;
+    scene.registerInputCallbacks();
 
     mach::Window::registerMousePositionCallback(window, [&inputEngine](int xpos, int ypos) {
         inputEngine.windowMousePositionCallback(xpos, ypos);
     });
 
-    inputEngine.registerMousePositionCallback([](int xposIn, int yposIn) -> bool {
+    inputEngine.registerMousePositionCallback([&scene](int xposIn, int yposIn) -> bool {
         float xpos = static_cast<float>(xposIn);
         float ypos = static_cast<float>(yposIn);
 
@@ -75,14 +99,15 @@ int main()
         lastX = xpos;
         lastY = ypos;
 
-        camera.ProcessMouseMovement(xoffset, yoffset);
+        // camera.ProcessMouseMovement(xoffset, yoffset);
         return false;
     });
 
-    inputEngine.registerKeyPressCallback([&window](int key, int duration) ->bool {
+    inputEngine.registerKeyPressCallback([&window, &physicsPaused](int key, int duration) ->bool {
         if (key == MACH_KEY_PERIOD)
         {
             window.setMouseCaptured(!window.getMouseCaptureState());
+            physicsPaused = !physicsPaused;
         }
         return true;
     }, mach::input::CallbackPriority::Gameplay, mach::input::KeyEventTrigger::Released);
@@ -99,23 +124,48 @@ int main()
 
     mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
 
-    auto backpackEntity = scene.createEntity("Backpack 1");
-    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    // auto backpackEntity = scene.createEntity("Backpack 1");
+    // backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    // backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    //
+    // auto backpackEntity2 = scene.createEntity("Backpack 2");
+    // backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 50.0f, 0.0f), glm::vec3(4.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    // backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    //
+    // mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), world, backpackModel, 0.0f);
+    // mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), world, backpackModel, 1.0f);
 
-    auto backpackEntity2 = scene.createEntity("Backpack 2");
-    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(5.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    for (unsigned int i = 0; i < 1000; i++)
+    {
+        auto backpackEntity = scene.createEntity("Backpack 1");
+        backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(i, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+        backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+        mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), world, backpackModel, 1.0f);
+    }
 
+    int counter = 0;
     while(!window.shouldClose()) {
+        counter++;
         fpsCounter.tick();
-        // LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
+        LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
         processInput(window);
         inputEngine.processInput();
 
         // Set clear color and clear the buffer
         window.setClearColor(backgroundColor);
         window.clear();
+        lineRenderer.clear();
+
+        // lineRenderer.addLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(100.0f, 100.0f, 100.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        if (!physicsPaused)
+        {
+            world->stepSimulation(deltaTime, 10);
+        }
+        world->debugDrawWorld();
+
+        auto cameraComponent = scene.getRegistry().get<mach::ecs::components::Camera>(cameraEntity.handle());
+        auto cameraTransform = scene.getRegistry().get<mach::ecs::components::Transform>(cameraEntity.handle());
 
         // Activate the program
         glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -125,8 +175,7 @@ int main()
         lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("lightPos", lightPos);
-        lightingShader.setVec3("viewPos", camera.Position);
+        lightingShader.setVec3("viewPos", cameraTransform.position);
 
         lightingShader.setInt("material.diffuse", 0);
         lightingShader.setInt("material.specular", 1);
@@ -155,8 +204,8 @@ int main()
         }
 
         // set spot light values
-        lightingShader.setVec3("spotLight.direction", camera.Front);
-        lightingShader.setVec3("spotLight.position", camera.Position);
+        lightingShader.setVec3("spotLight.direction", cameraComponent.Front);
+        lightingShader.setVec3("spotLight.position", cameraTransform.position);
         lightingShader.setVec3("spotLight.ambient", 0.1f, 0.1f, 0.1f);
         lightingShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
         lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
@@ -174,11 +223,13 @@ int main()
         model = glm::translate(model, glm::vec3(cubeXTranslation, cubeYTranslation, cubeZTranslation));
 
         // view projection (world space -> view space)
-        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 view = cameraComponent.GetViewMatrix(cameraTransform.position);
 
         // projection matrix
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        glm::mat4 viewProj = projection * view;
 
         // set uniforms
         int modelLoc = glGetUniformLocation(lightingShader.ID, "model");
@@ -193,6 +244,7 @@ int main()
         // backpackModel.Draw(lightingShader);
         // mach::ecs::systems::render(registry);
         scene.update(deltaTime);
+        lineRenderer.render(viewProj);
 
         // draw light cube
         // lightCubeShader.use();
@@ -244,12 +296,12 @@ int main()
 
 void processInput(const mach::Window& window)
 {
-    if (window.isKeyPressed(MACH_KEY_W))
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (window.isKeyPressed(MACH_KEY_S))
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (window.isKeyPressed(MACH_KEY_A))
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (window.isKeyPressed(MACH_KEY_D))
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+    // if (window.isKeyPressed(MACH_KEY_W))
+    //     camera.ProcessKeyboard(FORWARD, deltaTime);
+    // if (window.isKeyPressed(MACH_KEY_S))
+    //     camera.ProcessKeyboard(BACKWARD, deltaTime);
+    // if (window.isKeyPressed(MACH_KEY_A))
+    //     camera.ProcessKeyboard(LEFT, deltaTime);
+    // if (window.isKeyPressed(MACH_KEY_D))
+    //     camera.ProcessKeyboard(RIGHT, deltaTime);
 }

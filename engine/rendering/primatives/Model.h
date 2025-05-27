@@ -11,6 +11,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 
+#include "../../physics/AABB.h"
+
 namespace mach::renderer
 {
     class Model
@@ -21,9 +23,13 @@ namespace mach::renderer
         std::vector<Texture> textures_loaded;
 
     public:
+        AABB bounds;
+
+    public:
         Model(char* path);
         Model(std::string path);
         void Draw(Shader& shader);
+        void computeBounds();
 
     private:
         void loadModel(std::string path);

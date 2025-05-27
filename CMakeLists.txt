@@ -3,6 +3,8 @@ project(mach)
 
 set(CMAKE_CXX_STANDARD 23)
 
+add_subdirectory(dependencies/bullet)
+
 add_library(mach STATIC library.cpp
         engine/fs/Path.cpp
         engine/fs/Path.h
@@ -52,6 +54,21 @@ add_library(mach STATIC library.cpp
         engine/serialization/SceneSerializer.h
         engine/serialization/BinarySceneSerializer.cpp
         engine/serialization/BinarySceneSerializer.h
+        engine/ecs/components/RigidBody.h
+        engine/ecs/systems/PhysicsSystem.h
+        engine/rendering/debug/DebugLineRenderer.cpp
+        engine/rendering/debug/DebugLineRenderer.h
+        engine/rendering/debug/BulletDebugDrawer.h
+        engine/physics/AABB.h
+        engine/ecs/components/Camera.h
+        engine/ecs/systems/CameraSystem.h
+)
+
+target_link_libraries(mach
+        PRIVATE
+        BulletDynamics
+        BulletCollision
+        LinearMath
 )
 
 add_executable(testbed
@@ -62,6 +79,7 @@ target_include_directories(mach PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glm/include
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
         ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
+        ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
 )
 
 target_include_directories(testbed PRIVATE
@@ -69,6 +87,7 @@ target_include_directories(testbed PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glm/include
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
         ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
+        ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
 )
 
 target_link_libraries(testbed PRIVATE mach)
