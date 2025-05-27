@@ -62,6 +62,8 @@ add_library(mach STATIC library.cpp
         engine/physics/AABB.h
         engine/ecs/components/Camera.h
         engine/ecs/systems/CameraSystem.h
+        engine/physics/PhysicsEngine.cpp
+        engine/physics/PhysicsEngine.h
 )
 
 target_link_libraries(mach

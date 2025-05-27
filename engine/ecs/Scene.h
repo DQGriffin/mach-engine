@@ -7,6 +7,7 @@
 
 #include "../external/entt.h"
 #include "../input/input.h"
+#include "../physics/PhysicsEngine.h"
 #include "../rendering/camera/Camera.h"
 #include "systems/CameraSystem.h"
 
@@ -19,6 +20,7 @@ namespace mach::ecs
     public:
         Entity* activeCamera;
         mach::input::InputEngine* inputEngine;
+        mach::physics::PhysicsEngine physics;
 
     private:
         entt::registry registry;
