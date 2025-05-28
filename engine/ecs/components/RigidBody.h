@@ -15,6 +15,7 @@ namespace mach::ecs::components
         btRigidBody* body;
         btCollisionShape* shape;
         btDefaultMotionState* motionState;
+        btDiscreteDynamicsWorld* world;
 
         void applyForce(const glm::vec3& force) const
         {

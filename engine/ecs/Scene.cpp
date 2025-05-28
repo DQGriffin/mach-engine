@@ -3,6 +3,7 @@
 //
 
 #include "Scene.h"
+#include "components/RigidBody.h"
 #include "Entity.h"
 #include "components/Name.h"
 #include "systems/MeshRendererSystem.h"
@@ -13,6 +14,7 @@
 mach::ecs::Scene::Scene()
 {
     registerEntityTypes();
+    registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
 }
 
 mach::ecs::Entity mach::ecs::Scene::createEntity(const std::string &name)
@@ -97,8 +99,14 @@ void mach::ecs::Scene::registerEntityTypes()
             "get_name", &mach::ecs::Entity::getName,
             "get_position", &mach::ecs::Entity::getPosition,
             "set_position", &mach::ecs::Entity::setPosition,
-            "apply_force", &mach::ecs::Entity::applyForce
+            "apply_force", &mach::ecs::Entity::applyForce,
+            "destroy", &mach::ecs::Entity::destroy
     );
+
+    luaManager.lua["delete_entity"] = [this](entt::entity entity) {
+        registry.destroy(entity);
+        LOG_DEBUG("Deleted entity");
+    };
 
     luaManager.lua["apply_impulse"] = [this](entt::entity entity, glm::vec3 force) {
         auto& rigidBodyComponent = registry.get<mach::ecs::components::RigidBody>(entity);
@@ -108,7 +116,6 @@ void mach::ecs::Scene::registerEntityTypes()
     luaManager.lua["translate"] = [this](entt::entity entity, glm::vec3 translation) {
         auto& transform = registry.get<mach::ecs::components::Transform>(entity);
         transform.position += translation;
-        LOG_DEBUG(std::format("New Position x: {}, y: {}, z: {}", transform.position.x, transform.position.y, transform.position.z));
 
         if (registry.any_of<components::RigidBody>(entity)) {
             auto& rb = registry.get<mach::ecs::components::RigidBody>(entity);
@@ -121,9 +128,4 @@ void mach::ecs::Scene::registerEntityTypes()
             }
         }
     };
-}
-
-void mach::ecs::Scene::test()
-{
-    LOG_DEBUG("test")
 }

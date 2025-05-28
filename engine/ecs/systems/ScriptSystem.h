@@ -40,6 +40,8 @@ namespace mach::ecs::systems
 
         for (auto entity : view)
         {
+            if (!registry.valid(entity)) continue;
+
             auto& scriptComponent = view.get<components::ScriptComponent>(entity);
             if (scriptComponent.on_update->valid())
             {

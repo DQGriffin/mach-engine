@@ -67,7 +67,7 @@ namespace mach::physics
 
         world->addRigidBody(body);
 
-        registry.emplace<RigidBody>(entity, body, compoundShape, motionState);
+        registry.emplace<RigidBody>(entity, body, compoundShape, motionState, world);
         LOG_INFO("Created Physics body");
     }
 
@@ -100,6 +100,18 @@ namespace mach::ecs::systems
 
             // Assign to your rotation vector (assuming XYZ ordering)
             transform.rotation = glm::vec3(euler.x(), euler.y(), euler.z());
+        }
+    }
+
+    inline void onRigidBodyDestroyed(entt::registry& registry, entt::entity entity)
+    {
+        auto& rb = registry.get<RigidBody>(entity);
+        if (rb.body) {
+            rb.world->removeRigidBody(rb.body);
+            delete rb.body;
+            delete rb.motionState;
+            delete rb.shape;
+            rb.body = nullptr;
         }
     }
 

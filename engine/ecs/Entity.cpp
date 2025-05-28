@@ -56,6 +56,13 @@ namespace mach::ecs
         }
     }
 
+    void Entity::destroy()
+    {
+        m_Scene->getRegistry().reset(GetAiType(&m_Entity));
+        m_Scene->getRegistry().destroy(m_Entity);
+        m_Entity = entt::null;
+    }
+
     template<typename T, typename... Args>
     T& Entity::addComponent(Args&&... args) {
         return m_Scene->getRegistry().emplace<T>(m_Entity, std::forward<Args>(args)...);

@@ -42,7 +42,6 @@ namespace mach::ecs
 
     private:
         void registerEntityTypes();
-        void test();
 
     private:
     };

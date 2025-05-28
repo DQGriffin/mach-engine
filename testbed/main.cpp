@@ -96,7 +96,9 @@ int main()
     mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, backpackModel, 0.0f);
     mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, backpackModel, 1.0f);
 
-    scene.attachScript(backpackEntity2, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+    // scene.attachScript(backpackEntity2, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+    scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+    backpackEntity.destroy();
 
     while(!window.shouldClose()) {
         fpsCounter.tick();

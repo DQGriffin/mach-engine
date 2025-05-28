@@ -32,6 +32,7 @@ namespace mach::ecs
         glm::vec3 getPosition();
         void setPosition(const glm::vec3& position);
         void applyForce(const glm::vec3& force);
+        void destroy();
 
     private:
         entt::entity m_Entity = entt::null;
