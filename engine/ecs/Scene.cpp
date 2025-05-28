@@ -8,6 +8,7 @@
 #include "systems/MeshRendererSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/CameraSystem.h"
+#include "systems/ScriptSystem.h"
 
 mach::ecs::Scene::Scene()
 {
@@ -27,6 +28,12 @@ mach::ecs::Entity mach::ecs::Scene::createCameraEntity(const std::string &name, 
     registry.emplace<components::Transform>(entity.handle(), position, position, glm::vec3(1.0, 1.0, 1.0f));
     registry.emplace<components::Camera>(entity.handle());
     return entity;
+}
+
+void mach::ecs::Scene::attachScript(mach::ecs::Entity entity, const std::string& path)
+{
+    registry.emplace<components::ScriptComponent>(entity.handle());
+    systems::attachScriptToEntity(registry, entity, path, luaManager.lua);
 }
 
 void mach::ecs::Scene::destroyEntity(entt::entity entity)

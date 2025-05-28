@@ -36,14 +36,6 @@ namespace mach::physics
         // === Build shape from model bounds ===
         const AABB& bounds = model.bounds;
 
-        std::cout << "Center x: " << bounds.center().x << std::endl;
-        std::cout << "Center y: " << bounds.center().y << std::endl;
-        std::cout << "Center z: " << bounds.center().z << std::endl;
-
-        std::cout << "half extents x: " << bounds.halfExtents().x << std::endl;
-        std::cout << "half extents y: " << bounds.halfExtents().y << std::endl;
-        std::cout << "half extents z: " << bounds.halfExtents().z << std::endl;
-
         // Bullet wants half-extents
         btVector3 halfExtents(bounds.halfExtents().x,
                               bounds.halfExtents().y,

@@ -2,6 +2,7 @@
 // Created by Dquavius Griffin on 5/18/25.
 //
 
+#include <sol/sol.hpp>
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include "../engine/archive/Archive.h"
@@ -87,6 +88,7 @@ int main()
     auto backpackEntity = scene.createEntity("Backpack 1");
     backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
 
     auto backpackEntity2 = scene.createEntity("Backpack 2");
     backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 50.0f, 0.0f), glm::vec3(4.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -97,7 +99,7 @@ int main()
 
     while(!window.shouldClose()) {
         fpsCounter.tick();
-        LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
+        // LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
         inputEngine.processInput();
 
         // Set clear color and clear the buffer

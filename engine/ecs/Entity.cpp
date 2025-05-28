@@ -6,6 +6,7 @@
 #include "../math/vec.h"
 #include "components/Transform.h"
 #include "components/MeshRender.h"
+#include "components/Name.h"
 
 namespace mach::ecs
 {
@@ -14,6 +15,12 @@ namespace mach::ecs
 
     bool Entity::isValid() const {
         return m_Entity != entt::null && m_Scene != nullptr;
+    }
+
+    std::string Entity::getName()
+    {
+        auto nameComponent = getComponent<mach::ecs::components::Name>();
+        return nameComponent.name;
     }
 
     template<typename T, typename... Args>
