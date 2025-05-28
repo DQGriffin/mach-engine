@@ -1,12 +1,9 @@
-function on_start()
+function on_start(entity)
     print("Hello from on_start() in Lua")
-    return 5
+    print("My name is " .. entity:get_name())
 end
 
 function on_update(entity, dt)
-    print("Hello from on_update() in Lua")
-end
-
-function on_cock(entity, dt)
-    print("Hello from on_cock() in Lua")
+    local force = Vec3(0.01, 0.0, 0.0)
+    translate(entity, force)
 end

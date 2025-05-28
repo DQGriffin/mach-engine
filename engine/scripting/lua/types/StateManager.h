@@ -18,15 +18,9 @@ namespace mach::scripting::lua
         StateManager()
         {
             lua.open_libraries(sol::lib::base);
+            mach::scripting::lua::registerEntityTypes(lua);
         }
         ~StateManager() = default;
-
-        void registerTypes()
-        {
-            // lua.new_usertype<mach::ecs::Entity>("Entity",
-            //     "get_name", &mach::ecs::Entity::getName
-            // );
-        }
     };
 }
 

@@ -88,14 +88,15 @@ int main()
     auto backpackEntity = scene.createEntity("Backpack 1");
     backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
-    scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
 
     auto backpackEntity2 = scene.createEntity("Backpack 2");
-    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 50.0f, 0.0f), glm::vec3(4.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
 
     mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, backpackModel, 0.0f);
     mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, backpackModel, 1.0f);
+
+    scene.attachScript(backpackEntity2, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
 
     while(!window.shouldClose()) {
         fpsCounter.tick();

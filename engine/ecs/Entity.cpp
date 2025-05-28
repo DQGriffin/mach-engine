@@ -7,6 +7,7 @@
 #include "components/Transform.h"
 #include "components/MeshRender.h"
 #include "components/Name.h"
+#include "components/RigidBody.h"
 
 namespace mach::ecs
 {
@@ -21,6 +22,38 @@ namespace mach::ecs
     {
         auto nameComponent = getComponent<mach::ecs::components::Name>();
         return nameComponent.name;
+    }
+
+    glm::vec3 Entity::getPosition()
+    {
+        if (hasComponent<mach::ecs::components::Transform>())
+        {
+            auto nameComponent = getComponent<mach::ecs::components::Transform>();
+            return nameComponent.position;
+        }
+
+        return glm::vec3();
+    }
+
+    void Entity::setPosition(const glm::vec3 &position)
+    {
+        LOG_DEBUG(std::format("Entity::setPosition: x:{}, y:{}, z:{}", position.x, position.y, position.z));
+        if (hasComponent<mach::ecs::components::Transform>())
+        {
+            auto& transformComponent = getComponent<mach::ecs::components::Transform>();
+            transformComponent.position = position;
+        }
+    }
+
+    void Entity::applyForce(const glm::vec3 &force)
+    {
+        LOG_DEBUG(std::format("Entity::applyForce: x:{}, y:{}, z:{}", force.x, force.y, force.z));
+        if (hasComponent<mach::ecs::components::RigidBody>())
+        {
+            auto& rigidBodyComponent = getComponent<mach::ecs::components::RigidBody>();
+            rigidBodyComponent.applyForce(force);
+            LOG_DEBUG("applied force")
+        }
     }
 
     template<typename T, typename... Args>

@@ -12,7 +12,7 @@
 
 mach::ecs::Scene::Scene()
 {
-    // camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
+    registerEntityTypes();
 }
 
 mach::ecs::Entity mach::ecs::Scene::createEntity(const std::string &name)
@@ -47,6 +47,7 @@ void mach::ecs::Scene::update(float deltaTime)
     mach::ecs::systems::render(registry);
     mach::ecs::systems::syncTransforms(registry);
     mach::ecs::systems::updateCameras(registry);
+    mach::ecs::systems::callUpdateScrips(registry, deltaTime);
 }
 
 void mach::ecs::Scene::registerInputCallbacks()
@@ -78,4 +79,51 @@ void mach::ecs::Scene::registerInputCallbacks()
         systems::processMouseMovement(cameraComponent, xoffset, yoffset, true);
         return false;
     }, input::CallbackPriority::Gameplay);
+}
+
+void mach::ecs::Scene::registerEntityTypes()
+{
+    luaManager.lua.new_usertype<glm::vec3>("Vec3",
+        sol::call_constructor, sol::constructors<glm::vec3(), glm::vec3(float, float, float)>(),
+        "x", &glm::vec3::x,
+        "y", &glm::vec3::y,
+        "z", &glm::vec3::z,
+        sol::meta_function::to_string, [](const glm::vec3& v) {
+            return std::format("x: {}, y: {}, z: {}", v.x, v.y, v.z);
+        }
+    );
+
+    luaManager.lua.new_usertype<mach::ecs::Entity>("Entity",
+            "get_name", &mach::ecs::Entity::getName,
+            "get_position", &mach::ecs::Entity::getPosition,
+            "set_position", &mach::ecs::Entity::setPosition,
+            "apply_force", &mach::ecs::Entity::applyForce
+    );
+
+    luaManager.lua["apply_impulse"] = [this](entt::entity entity, glm::vec3 force) {
+        auto& rigidBodyComponent = registry.get<mach::ecs::components::RigidBody>(entity);
+        rigidBodyComponent.applyImpulse(force);
+    };
+
+    luaManager.lua["translate"] = [this](entt::entity entity, glm::vec3 translation) {
+        auto& transform = registry.get<mach::ecs::components::Transform>(entity);
+        transform.position += translation;
+        LOG_DEBUG(std::format("New Position x: {}, y: {}, z: {}", transform.position.x, transform.position.y, transform.position.z));
+
+        if (registry.any_of<components::RigidBody>(entity)) {
+            auto& rb = registry.get<mach::ecs::components::RigidBody>(entity);
+            if (rb.body) {
+                btTransform btTrans;
+                btTrans.setIdentity();
+                btTrans.setOrigin(btVector3(transform.position.x, transform.position.y, transform.position.z));
+                rb.body->setWorldTransform(btTrans);
+                rb.body->getMotionState()->setWorldTransform(btTrans);
+            }
+        }
+    };
+}
+
+void mach::ecs::Scene::test()
+{
+    LOG_DEBUG("test")
 }

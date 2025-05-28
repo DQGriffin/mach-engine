@@ -41,6 +41,10 @@ namespace mach::ecs
         void registerInputCallbacks();
 
     private:
+        void registerEntityTypes();
+        void test();
+
+    private:
     };
 }
 

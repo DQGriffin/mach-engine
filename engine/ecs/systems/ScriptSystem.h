@@ -33,6 +33,20 @@ namespace mach::ecs::systems
             LOG_DEBUG("on_start script is not valid")
         }
     }
+
+    inline void callUpdateScrips(entt::registry& registry, float deltaTime)
+    {
+        auto view = registry.view<components::ScriptComponent>();
+
+        for (auto entity : view)
+        {
+            auto& scriptComponent = view.get<components::ScriptComponent>(entity);
+            if (scriptComponent.on_update->valid())
+            {
+                (*scriptComponent.on_update)(entity, deltaTime);
+            }
+        }
+    }
 }
 
 #endif //SCRIPTSYSTEM_H
