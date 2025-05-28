@@ -6,7 +6,7 @@ function on_start(entity)
 end
 
 function on_update(entity, dt)
-    print("on_update")
+--     print("on_update")
     local force = Vec3(0.01, 0.0, 0.0)
     translate(entity, force)
 end

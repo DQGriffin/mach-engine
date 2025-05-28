@@ -6,6 +6,7 @@
 #include "components/RigidBody.h"
 #include "Entity.h"
 #include "components/Name.h"
+#include "components/PendingDeletion.h"
 #include "systems/MeshRendererSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/CameraSystem.h"
@@ -104,8 +105,11 @@ void mach::ecs::Scene::registerEntityTypes()
     );
 
     luaManager.lua["delete_entity"] = [this](entt::entity entity) {
-        registry.destroy(entity);
-        LOG_DEBUG("Deleted entity");
+        if (registry.valid(entity))
+        {
+            registry.emplace<components::PendingDeletion>(entity);
+            LOG_DEBUG("Marked entity for deletion");
+        }
     };
 
     luaManager.lua["apply_impulse"] = [this](entt::entity entity, glm::vec3 force) {

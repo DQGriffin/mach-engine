@@ -14,6 +14,7 @@
 #include "../engine/ecs/Scene.h"
 #include "../engine/ecs/Entity.h"
 #include "../engine/ecs/components/MeshRender.h"
+#include "../engine/ecs/components/PendingDeletion.h"
 #include "../engine/ecs/components/Transform.h"
 #include "../engine/ecs/systems/MeshRendererSystem.h"
 #include "../engine/ecs/systems/PhysicsSystem.h"
@@ -98,7 +99,7 @@ int main()
 
     // scene.attachScript(backpackEntity2, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
     scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
-    backpackEntity.destroy();
+    // backpackEntity.destroy();
 
     while(!window.shouldClose()) {
         fpsCounter.tick();
@@ -220,6 +221,13 @@ int main()
         //
         //     glDrawArrays(GL_TRIANGLES, 0, 36);
         // }
+
+        auto eview = scene.getRegistry().view<mach::ecs::components::PendingDeletion>();
+        for (auto entity : eview)
+        {
+            scene.getRegistry().destroy(entity);
+            LOG_DEBUG("Entity deleted");
+        }
 
         float currentTime = mach::time::getTime();
         deltaTime = currentTime - lastFrame;

@@ -7,6 +7,7 @@
 #include "components/Transform.h"
 #include "components/MeshRender.h"
 #include "components/Name.h"
+#include "components/PendingDeletion.h"
 #include "components/RigidBody.h"
 
 namespace mach::ecs
@@ -58,9 +59,8 @@ namespace mach::ecs
 
     void Entity::destroy()
     {
-        m_Scene->getRegistry().reset(GetAiType(&m_Entity));
-        m_Scene->getRegistry().destroy(m_Entity);
-        m_Entity = entt::null;
+        m_Scene->getRegistry().emplace<components::PendingDeletion>(m_Entity);
+        LOG_DEBUG("Marked entity for deletion");
     }
 
     template<typename T, typename... Args>
