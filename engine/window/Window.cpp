@@ -9,6 +9,7 @@
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
+    LOG_INFO(std::format("Framebuffer size: {}x{}", width, height));
     glViewport(0, 0, width, height);
 }
 
@@ -23,7 +24,7 @@ mach::Window::Window(int width, int height, const char *title)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    this->window = glfwCreateWindow(800, 600, title, NULL, NULL);
+    this->window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         LOG_FATAL("Failed to create GLFW window");
