@@ -36,6 +36,7 @@ namespace mach::archive
         ~Archive();
         bool open();
         void close();
+        bool contains(const std::string& name) const;
         std::vector<char> get(const std::string& name);
         void unpack(std::string rootDir);
         static void createArchive(const std::string& outputPath, const mach::fs::Path& inputPath, bool recursive);

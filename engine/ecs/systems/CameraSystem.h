@@ -60,9 +60,17 @@ namespace mach::ecs::systems
     {
         float velocity = cameraComponent.MovementSpeed * deltaTime;
         if (direction == components::FORWARD)
+        {
+            transformComponent.position.x += velocity * cameraComponent.Front.x;
+            transformComponent.position.z += velocity * cameraComponent.Front.z;
             transformComponent.position += cameraComponent.Front * velocity;
+        }
         if (direction == components::BACKWARD)
+        {
+            transformComponent.position.x -= velocity * cameraComponent.Front.x;
+            transformComponent.position.z -= velocity * cameraComponent.Front.z;
             transformComponent.position -= cameraComponent.Front * velocity;
+        }
         if (direction == components::LEFT)
             transformComponent.position -= cameraComponent.Right * velocity;
         if (direction == components::RIGHT)

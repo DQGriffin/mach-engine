@@ -4,6 +4,7 @@ project(mach)
 set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(dependencies/bullet)
+add_subdirectory(dependencies/lua)
 
 add_library(mach STATIC library.cpp
         engine/fs/Path.cpp
@@ -62,6 +63,15 @@ add_library(mach STATIC library.cpp
         engine/physics/AABB.h
         engine/ecs/components/Camera.h
         engine/ecs/systems/CameraSystem.h
+        engine/physics/PhysicsEngine.cpp
+        engine/physics/PhysicsEngine.h
+        engine/scripting/lua/types/lua_types.h
+        engine/ecs/components/ScriptComponent.h
+        engine/ecs/systems/ScriptSystem.h
+        engine/scripting/lua/types/StateManager.h
+        engine/ecs/components/PendingDeletion.h
+        engine/ecs/components/Anchor.h
+        engine/ecs/systems/AnchorSystem.h
 )
 
 target_link_libraries(mach
@@ -70,6 +80,8 @@ target_link_libraries(mach
         BulletCollision
         LinearMath
 )
+
+target_link_libraries(mach PRIVATE liblua_static)
 
 add_executable(testbed
         testbed/main.cpp)
@@ -80,6 +92,8 @@ target_include_directories(mach PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
         ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
         ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
+        ${CMAKE_SOURCE_DIR}/dependencies/sol2/include
+        ${CMAKE_SOURCE_DIR}/dependencies/lua/src
 )
 
 target_include_directories(testbed PRIVATE
@@ -88,6 +102,8 @@ target_include_directories(testbed PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glad/include
         ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
         ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
+        ${CMAKE_SOURCE_DIR}/dependencies/sol2/include
+        ${CMAKE_SOURCE_DIR}/dependencies/lua/src
 )
 
 target_link_libraries(testbed PRIVATE mach)

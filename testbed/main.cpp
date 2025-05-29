@@ -2,6 +2,7 @@
 // Created by Dquavius Griffin on 5/18/25.
 //
 
+#include <sol/sol.hpp>
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include "../engine/archive/Archive.h"
@@ -12,7 +13,9 @@
 #include "../engine/assets/AssetManager.h"
 #include "../engine/ecs/Scene.h"
 #include "../engine/ecs/Entity.h"
+#include "../engine/ecs/components/Anchor.h"
 #include "../engine/ecs/components/MeshRender.h"
+#include "../engine/ecs/components/PendingDeletion.h"
 #include "../engine/ecs/components/Transform.h"
 #include "../engine/ecs/systems/MeshRendererSystem.h"
 #include "../engine/ecs/systems/PhysicsSystem.h"
@@ -28,27 +31,15 @@
 #include "../engine/rendering/debug/DebugLineRenderer.h"
 #include "../engine/rendering/debug/BulletDebugDrawer.h"
 
-// Camera camera(glm::vec3(0.0f, 1.0f, 7.0f));
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-float lastX = 400;
-float lastY = 300;
-float yaw = -90.0f;
-float pitch = 0.0f;
-bool firstMouse = true;
-
-float cubeXTranslation = 0.0f;
-float cubeYTranslation = 0.0f;
-float cubeZTranslation = 0.0f;
-
-void processInput(const mach::Window& window);
 
 int main()
 {
     mach::Window window = mach::Window(800, 600, "Mach 2 Testbed");
     window.captureMouse();
     window.setVSync(false);
+    mach::AssetManager assets;
     mach::Color backgroundColor = mach::Color(0.1f, 0.1f, 0.1f);
     mach::input::InputEngine inputEngine = mach::input::InputEngine(std::make_shared<mach::Window>(window));
     mach::FpsCounter fpsCounter;
@@ -59,21 +50,15 @@ int main()
     Shader debugLineShader("/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/vertex.glsl", "/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/fragment.glsl");
     mach::renderer::DebugLineRenderer lineRenderer(&debugLineShader);
 
-    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-    btDefaultCollisionConfiguration* config = new btDefaultCollisionConfiguration();
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(config);
-    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver();
-
-    btDiscreteDynamicsWorld* world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, config);
-    world->setGravity(btVector3(0, -9.81, 0));
-
     auto* drawer = new mach::renderer::BulletDebugDrawer(&lineRenderer);
-    // drawer->renderer = &debugLineRenderer;
-    world->setDebugDrawer(drawer);
+    // world->setDebugDrawer(drawer);
     drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 
     mach::ecs::Scene scene;
     scene.inputEngine = &inputEngine;
+    scene.physics.setDebugDrawer(drawer);
+    scene.physics.setDrawWireframe(true);
+    scene.physics.setDrawWireframe(true);
     auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
@@ -82,32 +67,11 @@ int main()
         inputEngine.windowMousePositionCallback(xpos, ypos);
     });
 
-    inputEngine.registerMousePositionCallback([&scene](int xposIn, int yposIn) -> bool {
-        float xpos = static_cast<float>(xposIn);
-        float ypos = static_cast<float>(yposIn);
-
-        if (firstMouse)
-        {
-            lastX = xpos;
-            lastY = ypos;
-            firstMouse = false;
-        }
-
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-        lastX = xpos;
-        lastY = ypos;
-
-        // camera.ProcessMouseMovement(xoffset, yoffset);
-        return false;
-    });
-
-    inputEngine.registerKeyPressCallback([&window, &physicsPaused](int key, int duration) ->bool {
+    inputEngine.registerKeyPressCallback([&window, &scene](int key, int duration) ->bool {
         if (key == MACH_KEY_PERIOD)
         {
             window.setMouseCaptured(!window.getMouseCaptureState());
-            physicsPaused = !physicsPaused;
+            scene.physics.isPaused = !scene.physics.isPaused;
         }
         return true;
     }, mach::input::CallbackPriority::Gameplay, mach::input::KeyEventTrigger::Released);
@@ -122,33 +86,43 @@ int main()
     Shader lightingShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/fragment.glsl");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
 
-    mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
+    auto model = assets.requireModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
+    auto floorModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/floor-thing/floor-thing.obj");
+    auto monkeyModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/monkey/monkey.obj");
 
-    // auto backpackEntity = scene.createEntity("Backpack 1");
-    // backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    // backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
-    //
-    // auto backpackEntity2 = scene.createEntity("Backpack 2");
-    // backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 50.0f, 0.0f), glm::vec3(4.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    // backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
-    //
-    // mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), world, backpackModel, 0.0f);
-    // mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), world, backpackModel, 1.0f);
+    auto backpackEntity = scene.createEntity("Backpack 1");
+    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
 
-    for (unsigned int i = 0; i < 1000; i++)
-    {
-        auto backpackEntity = scene.createEntity("Backpack 1");
-        backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(i, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-        backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
-        mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), world, backpackModel, 1.0f);
-    }
+    auto backpackEntity2 = scene.createEntity("Backpack 2");
+    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
 
-    int counter = 0;
+    auto floorEntity = scene.createEntity("Floor 1");
+    floorEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    floorEntity.addComponent<mach::ecs::components::ModelRenderer>(&floorModel, &lightingShader);
+
+    auto playerEntity = scene.createEntity("Player 1");
+    playerEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(8.0f, 25.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    playerEntity.addComponent<mach::ecs::components::ModelRenderer>(&monkeyModel, &lightingShader);
+    scene.setPlayerEntity(&playerEntity);
+
+    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, model, 505.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, model, 550.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), floorEntity.handle(), scene.physics.world, floorModel, 0.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), playerEntity.handle(), scene.physics.world, monkeyModel, 10.0f);
+
+    auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
+    anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);
+    anc.y = true;
+    anc.x = true;
+    anc.z = true;
+
+    // scene.attachScript(playerEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+
     while(!window.shouldClose()) {
-        counter++;
         fpsCounter.tick();
-        LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
-        processInput(window);
+        // LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
         inputEngine.processInput();
 
         // Set clear color and clear the buffer
@@ -156,13 +130,8 @@ int main()
         window.clear();
         lineRenderer.clear();
 
-        // lineRenderer.addLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(100.0f, 100.0f, 100.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-        if (!physicsPaused)
-        {
-            world->stepSimulation(deltaTime, 10);
-        }
-        world->debugDrawWorld();
+        scene.physics.step(deltaTime);
+        scene.physics.world->debugDrawWorld();
 
         auto cameraComponent = scene.getRegistry().get<mach::ecs::components::Camera>(cameraEntity.handle());
         auto cameraTransform = scene.getRegistry().get<mach::ecs::components::Transform>(cameraEntity.handle());
@@ -215,12 +184,9 @@ int main()
         lightingShader.setFloat("spotLight.linear", 0.09f);
         lightingShader.setFloat("spotLight.quadratic", 0.032f);
 
-
-
         // model projection (local space -> world space)
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(cubeXTranslation, cubeYTranslation, cubeZTranslation));
 
         // view projection (world space -> view space)
         glm::mat4 view = cameraComponent.GetViewMatrix(cameraTransform.position);
@@ -242,7 +208,6 @@ int main()
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         // backpackModel.Draw(lightingShader);
-        // mach::ecs::systems::render(registry);
         scene.update(deltaTime);
         lineRenderer.render(viewProj);
 
@@ -276,6 +241,13 @@ int main()
         //     glDrawArrays(GL_TRIANGLES, 0, 36);
         // }
 
+        auto eview = scene.getRegistry().view<mach::ecs::components::PendingDeletion>();
+        for (auto entity : eview)
+        {
+            scene.getRegistry().destroy(entity);
+            LOG_DEBUG("Entity deleted");
+        }
+
         float currentTime = mach::time::getTime();
         deltaTime = currentTime - lastFrame;
         lastFrame = currentTime;
@@ -292,16 +264,4 @@ int main()
     // mach::archive::Archive archive(archivePath);
     // archive.open();
     // archive.unpack("/Users/griffin/test/dependencies/");
-}
-
-void processInput(const mach::Window& window)
-{
-    // if (window.isKeyPressed(MACH_KEY_W))
-    //     camera.ProcessKeyboard(FORWARD, deltaTime);
-    // if (window.isKeyPressed(MACH_KEY_S))
-    //     camera.ProcessKeyboard(BACKWARD, deltaTime);
-    // if (window.isKeyPressed(MACH_KEY_A))
-    //     camera.ProcessKeyboard(LEFT, deltaTime);
-    // if (window.isKeyPressed(MACH_KEY_D))
-    //     camera.ProcessKeyboard(RIGHT, deltaTime);
 }

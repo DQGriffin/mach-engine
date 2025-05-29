@@ -84,6 +84,11 @@ void mach::archive::Archive::close()
     this->file.close();
 }
 
+bool mach::archive::Archive::contains(const std::string& name) const
+{
+    return this->toc.contains(name);
+}
+
 std::vector<char> mach::archive::Archive::get(const std::string &name)
 {
     if (!this->file.is_open()) throw std::runtime_error("MACH::ARCHIVE::Archive::get::get. File is closed");

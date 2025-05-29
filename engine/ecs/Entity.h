@@ -2,7 +2,6 @@
 // Created by Dquavius Griffin on 5/26/25.
 //
 
-#pragma once
 #ifndef ENTITY_H
 #define ENTITY_H
 #include "../external/entt.h"
@@ -28,6 +27,12 @@ namespace mach::ecs
 
         entt::entity handle() const { return m_Entity; }
         bool isValid() const;
+
+        std::string getName();
+        glm::vec3 getPosition();
+        void setPosition(const glm::vec3& position);
+        void applyForce(const glm::vec3& force);
+        void destroy();
 
     private:
         entt::entity m_Entity = entt::null;

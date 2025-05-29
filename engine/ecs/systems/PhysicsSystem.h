@@ -36,14 +36,6 @@ namespace mach::physics
         // === Build shape from model bounds ===
         const AABB& bounds = model.bounds;
 
-        std::cout << "Center x: " << bounds.center().x << std::endl;
-        std::cout << "Center y: " << bounds.center().y << std::endl;
-        std::cout << "Center z: " << bounds.center().z << std::endl;
-
-        std::cout << "half extents x: " << bounds.halfExtents().x << std::endl;
-        std::cout << "half extents y: " << bounds.halfExtents().y << std::endl;
-        std::cout << "half extents z: " << bounds.halfExtents().z << std::endl;
-
         // Bullet wants half-extents
         btVector3 halfExtents(bounds.halfExtents().x,
                               bounds.halfExtents().y,
@@ -75,7 +67,7 @@ namespace mach::physics
 
         world->addRigidBody(body);
 
-        registry.emplace<RigidBody>(entity, body, compoundShape, motionState);
+        registry.emplace<RigidBody>(entity, body, compoundShape, motionState, world);
         LOG_INFO("Created Physics body");
     }
 
@@ -108,6 +100,18 @@ namespace mach::ecs::systems
 
             // Assign to your rotation vector (assuming XYZ ordering)
             transform.rotation = glm::vec3(euler.x(), euler.y(), euler.z());
+        }
+    }
+
+    inline void onRigidBodyDestroyed(entt::registry& registry, entt::entity entity)
+    {
+        auto& rb = registry.get<RigidBody>(entity);
+        if (rb.body) {
+            rb.world->removeRigidBody(rb.body);
+            delete rb.body;
+            delete rb.motionState;
+            delete rb.shape;
+            rb.body = nullptr;
         }
     }
 
