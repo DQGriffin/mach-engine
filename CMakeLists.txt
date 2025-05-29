@@ -70,6 +70,8 @@ add_library(mach STATIC library.cpp
         engine/ecs/systems/ScriptSystem.h
         engine/scripting/lua/types/StateManager.h
         engine/ecs/components/PendingDeletion.h
+        engine/ecs/components/Anchor.h
+        engine/ecs/systems/AnchorSystem.h
 )
 
 target_link_libraries(mach

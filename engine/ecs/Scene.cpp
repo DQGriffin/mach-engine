@@ -7,6 +7,7 @@
 #include "Entity.h"
 #include "components/Name.h"
 #include "components/PendingDeletion.h"
+#include "systems/AnchorSystem.h"
 #include "systems/MeshRendererSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/CameraSystem.h"
@@ -16,6 +17,11 @@ mach::ecs::Scene::Scene()
 {
     registerEntityTypes();
     registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
+}
+
+void mach::ecs::Scene::setPlayerEntity(Entity* entity)
+{
+    playerEntity = entity;
 }
 
 mach::ecs::Entity mach::ecs::Scene::createEntity(const std::string &name)
@@ -51,12 +57,46 @@ void mach::ecs::Scene::update(float deltaTime)
     mach::ecs::systems::syncTransforms(registry);
     mach::ecs::systems::updateCameras(registry);
     mach::ecs::systems::callUpdateScrips(registry, deltaTime);
+    mach::ecs::systems::updateAnchorPositions(registry);
 }
 
 void mach::ecs::Scene::registerInputCallbacks()
 {
     inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
-        systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
+        // systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
+            if (key == MACH_KEY_W || key == MACH_KEY_A || key == MACH_KEY_S || key == MACH_KEY_D)
+            {
+                auto& rb = registry.get<mach::ecs::components::RigidBody>(playerEntity->handle());
+                auto& cam = registry.get<mach::ecs::components::Camera>(activeCamera->handle());
+
+                float movementSpeed = 7.0f;
+
+                float inputX = 0.0f;
+                float inputY = 0.0f;
+
+                if (key == MACH_KEY_W) inputY += 1.0f;
+                if (key == MACH_KEY_S) inputY -= 1.0f;
+                if (key == MACH_KEY_A) inputX -= 1.0f;
+                if (key == MACH_KEY_D) inputX += 1.0f;
+
+                glm::vec3 forward = cam.Front;
+                forward.y = 0.0f;
+
+                forward = glm::normalize(forward);
+
+
+                glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+                glm::vec3 moveDir = forward * inputY + right * inputX;
+                moveDir = glm::normalize(moveDir);
+
+                auto vel = rb.body->getLinearVelocity();
+                vel.setX(moveDir.x * movementSpeed);
+                vel.setZ(moveDir.z * movementSpeed);
+                rb.body->setActivationState(DISABLE_DEACTIVATION);
+                rb.body->setDamping(0.97f, 0.2f);
+                rb.body->setLinearVelocity(vel);
+            }
+
         return false;
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Pressed);
 

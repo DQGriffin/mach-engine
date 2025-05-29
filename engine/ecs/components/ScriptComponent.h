@@ -13,6 +13,7 @@ namespace mach::ecs::components
         std::unique_ptr<sol::environment> env;
         std::unique_ptr<sol::function> on_start;
         std::unique_ptr<sol::function> on_update;
+        std::unique_ptr<sol::function> on_keypress;
     };
 }
 

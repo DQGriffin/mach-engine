@@ -13,6 +13,7 @@
 #include "../engine/assets/AssetManager.h"
 #include "../engine/ecs/Scene.h"
 #include "../engine/ecs/Entity.h"
+#include "../engine/ecs/components/Anchor.h"
 #include "../engine/ecs/components/MeshRender.h"
 #include "../engine/ecs/components/PendingDeletion.h"
 #include "../engine/ecs/components/Transform.h"
@@ -38,6 +39,7 @@ int main()
     mach::Window window = mach::Window(800, 600, "Mach 2 Testbed");
     window.captureMouse();
     window.setVSync(false);
+    mach::AssetManager assets;
     mach::Color backgroundColor = mach::Color(0.1f, 0.1f, 0.1f);
     mach::input::InputEngine inputEngine = mach::input::InputEngine(std::make_shared<mach::Window>(window));
     mach::FpsCounter fpsCounter;
@@ -84,22 +86,39 @@ int main()
     Shader lightingShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/fragment.glsl");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
 
-    mach::renderer::Model backpackModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
+    auto model = assets.requireModel("/Users/griffin/dev/mach/test-assets/table/table.obj");
+    auto floorModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/floor-thing/floor-thing.obj");
+    auto monkeyModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/monkey/monkey.obj");
 
     auto backpackEntity = scene.createEntity("Backpack 1");
-    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
 
     auto backpackEntity2 = scene.createEntity("Backpack 2");
-    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&backpackModel, &lightingShader);
+    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
 
-    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, backpackModel, 0.0f);
-    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, backpackModel, 1.0f);
+    auto floorEntity = scene.createEntity("Floor 1");
+    floorEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    floorEntity.addComponent<mach::ecs::components::ModelRenderer>(&floorModel, &lightingShader);
 
-    // scene.attachScript(backpackEntity2, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
-    scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
-    // backpackEntity.destroy();
+    auto playerEntity = scene.createEntity("Player 1");
+    playerEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(8.0f, 25.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+    playerEntity.addComponent<mach::ecs::components::ModelRenderer>(&monkeyModel, &lightingShader);
+    scene.setPlayerEntity(&playerEntity);
+
+    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, model, 505.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, model, 550.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), floorEntity.handle(), scene.physics.world, floorModel, 0.0f);
+    mach::physics::createPhysicsBody(scene.getRegistry(), playerEntity.handle(), scene.physics.world, monkeyModel, 10.0f);
+
+    auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
+    anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);
+    anc.y = true;
+    anc.x = true;
+    anc.z = true;
+
+    // scene.attachScript(playerEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
 
     while(!window.shouldClose()) {
         fpsCounter.tick();

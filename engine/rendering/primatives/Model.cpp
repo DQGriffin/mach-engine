@@ -163,6 +163,8 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
 
+    LOG_INFO(std::format("Loading texture {}", filename));
+
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
@@ -192,7 +194,9 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
     }
     else
     {
+        const char* reason = stbi_failure_reason();
         std::cout << "Texture failed to load at path: " << path << std::endl;
+        std::cout << "Reason: " << reason << std::endl;
         stbi_image_free(data);
     }
 

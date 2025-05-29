@@ -21,6 +21,7 @@ namespace mach::ecs
     {
     public:
         Entity* activeCamera;
+        Entity* playerEntity;
         mach::input::InputEngine* inputEngine;
         mach::physics::PhysicsEngine physics;
         mach::scripting::lua::StateManager luaManager;
@@ -32,6 +33,7 @@ namespace mach::ecs
     public:
         Scene();
         ~Scene() = default;
+        void setPlayerEntity(Entity* entity);
         mach::ecs::Entity createEntity(const std::string& name);
         mach::ecs::Entity createCameraEntity(const std::string& name, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f));
         void attachScript(mach::ecs::Entity entity, const std::string& path);
