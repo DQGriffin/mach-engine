@@ -36,7 +36,7 @@ float lastFrame = 0.0f;
 
 int main()
 {
-    mach::Window window = mach::Window(800, 600, "Mach 2 Testbed");
+    mach::Window window = mach::Window(1200, 800, "Mach 2 Testbed");
     window.captureMouse();
     window.setVSync(false);
     mach::AssetManager assets;
@@ -52,13 +52,13 @@ int main()
 
     auto* drawer = new mach::renderer::BulletDebugDrawer(&lineRenderer);
     // world->setDebugDrawer(drawer);
-    drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    // drawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
 
     mach::ecs::Scene scene;
     scene.inputEngine = &inputEngine;
-    scene.physics.setDebugDrawer(drawer);
-    scene.physics.setDrawWireframe(true);
-    scene.physics.setDrawWireframe(true);
+    // scene.physics.setDebugDrawer(drawer);
+    // scene.physics.setDrawWireframe(true);
+    // scene.physics.setDrawWireframe(true);
     auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
