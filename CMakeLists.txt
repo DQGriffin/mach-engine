@@ -72,6 +72,8 @@ add_library(mach STATIC library.cpp
         engine/ecs/components/PendingDeletion.h
         engine/ecs/components/Anchor.h
         engine/ecs/systems/AnchorSystem.h
+        engine/ecs/components/FpsCharacterController.h
+        engine/ecs/systems/FpsCharacterControllerSystem.h
 )
 
 target_link_libraries(mach
