@@ -33,6 +33,11 @@ namespace mach::archive
     public:
         Archive();
         explicit Archive(const mach::fs::Path& path);
+        Archive(const Archive&) = delete;
+        Archive& operator=(const Archive&) = delete;
+
+        Archive(Archive&&) noexcept = default;
+        Archive& operator=(Archive&&) noexcept = default;
         ~Archive();
         bool open();
         void close();

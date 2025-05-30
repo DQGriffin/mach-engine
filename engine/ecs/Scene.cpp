@@ -57,6 +57,7 @@ void mach::ecs::Scene::update(float deltaTime)
     this->deltaTime = deltaTime;
     mach::ecs::systems::render(registry);
     mach::ecs::systems::syncTransforms(registry);
+    mach::ecs::systems::syncMeshColliderTransforms(registry);
     mach::ecs::systems::updateCameras(registry);
     mach::ecs::systems::callUpdateScrips(registry, deltaTime);
     mach::ecs::systems::updateAnchorPositions(registry);

@@ -37,6 +37,9 @@ float lastFrame = 0.0f;
 
 int main()
 {
+    // mach::fs::Path path = mach::fs::Path("/Users/griffin/mach-test-assets");
+    // mach::archive::Archive::createArchive("/Users/griffin/test-assets.macha", path, true);
+
     mach::Window window = mach::Window(1200, 800, "Mach 2 Testbed");
     window.captureMouse();
     window.setVSync(false);
@@ -45,6 +48,10 @@ int main()
     mach::input::InputEngine inputEngine = mach::input::InputEngine(std::make_shared<mach::Window>(window));
     mach::FpsCounter fpsCounter;
     mach::FrameLimiter frameLimiter;
+
+    assets.loadArchive("/Users/griffin/test-assets.macha");
+    assets.loadShaderDefinitions("shaders.json");
+    assets.preloadShader("lighting");
 
     Shader debugLineShader("/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/vertex.glsl", "/Users/griffin/dev/mach/engine/rendering/shaders/debug-line/fragment.glsl");
     mach::renderer::DebugLineRenderer lineRenderer(&debugLineShader);
@@ -80,7 +87,7 @@ int main()
         glm::vec3( 0.0f, 0.0f, -3.0f)
     };
 
-    Shader lightingShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/test/fragment.glsl");
+    Shader& lightingShader = assets.requireShader("lighting");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
 
     auto model = assets.requireModel("/Users/griffin/Game Assets/Models/Authored/Low Poly Bed/wavefront/bed.obj");
@@ -89,7 +96,7 @@ int main()
     auto roomModel = assets.requireModel("/Users/griffin/Game Assets/Models/Authored/Room Slice/wavefront/room.obj");
 
     auto roomEntity = scene.createEntity("Room 1");
-    roomEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(10.0f, 4.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    roomEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(-10.0f, 4.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     roomEntity.addComponent<mach::ecs::components::ModelRenderer>(&roomModel, &lightingShader);
 
     auto backpackEntity = scene.createEntity("Backpack 1");
@@ -114,11 +121,12 @@ int main()
     mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, model, false, 550.0f);
     mach::physics::createPhysicsBody(scene.getRegistry(), floorEntity.handle(), scene.physics.world, floorModel, false, 0.0f);
     mach::physics::createPhysicsBody(scene.getRegistry(), playerEntity.handle(), scene.physics.world, monkeyModel, true, 10.0f);
+    // mach::physics::createPhysicsBody(scene.getRegistry(), roomEntity.handle(), scene.physics.world, roomModel, false, 0.0f);
 
 
     const auto& verts = roomModel.getVertices();
 
-    mach::physics::createMeshCollider(scene.getRegistry(), roomEntity.handle(), scene.physics.world, verts, 0.0f);
+    mach::physics::createMeshCollider(scene.getRegistry(), roomEntity.handle(), scene.physics.world, verts, roomModel.getIndices(), 0.0f);
 
     auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
     anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);

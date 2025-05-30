@@ -9,10 +9,12 @@
 
 mach::archive::Archive::Archive()
 {
+    LOG_INFO("Archive instantiated");
 }
 
 mach::archive::Archive::Archive(const mach::fs::Path &path)
 {
+    LOG_INFO("Archive instantiated");
     this->file.open(path.toString(), std::ios::binary);
     if (!this->file.is_open()) return;
 }
@@ -91,9 +93,10 @@ bool mach::archive::Archive::contains(const std::string& name) const
 
 std::vector<char> mach::archive::Archive::get(const std::string &name)
 {
+    LOG_INFO(std::format("Looking for '{}' in archive", name));
     if (!this->file.is_open()) throw std::runtime_error("MACH::ARCHIVE::Archive::get::get. File is closed");
     auto it = this->toc.find(name);
-    if (it == this->toc.end()) throw std::runtime_error("MACH::ARCHIVE::Archive::get::get");
+    if (it == this->toc.end()) throw std::runtime_error("File now found in archive");
 
     const TocEntry& entry = it->second;
     this->file.seekg(entry.offset);

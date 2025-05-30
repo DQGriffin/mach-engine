@@ -137,7 +137,7 @@ namespace mach::physics
         LOG_INFO("Created Physics body");
     }
 
-    inline void createMeshCollider(entt::registry& registry, entt::entity entity, btDiscreteDynamicsWorld* world, const std::vector<glm::vec3>& verts, float mass)
+    inline void createMeshCollider(entt::registry& registry, entt::entity entity, btDiscreteDynamicsWorld* world, const std::vector<glm::vec3>& verts, const std::vector<unsigned int>& indices, float mass)
     {
         LOG_INFO("Creating mesh collider");
         auto& entityTransform = registry.get<Transform>(entity);
@@ -148,11 +148,12 @@ namespace mach::physics
             auto* triMesh = new btTriangleMesh();
 
             for (size_t i = 0; i + 2 < verts.size(); i += 3) {
-                btVector3 v0(verts[i].x,     verts[i].y,     verts[i].z);
-                btVector3 v1(verts[i + 1].x, verts[i + 1].y, verts[i + 1].z);
-                btVector3 v2(verts[i + 2].x, verts[i + 2].y, verts[i + 2].z);
-
-                triMesh->addTriangle(v0, v1, v2);
+                const glm::vec3& v0 = verts[indices[i]];
+                const glm::vec3& v1 = verts[indices[i + 1]];
+                const glm::vec3& v2 = verts[indices[i + 2]];
+                triMesh->addTriangle(btVector3(v0.x, v0.y, v0.z),
+                                  btVector3(v1.x, v1.y, v1.z),
+                                  btVector3(v2.x, v2.y, v2.z));
             }
 
             shape = new btBvhTriangleMeshShape(triMesh, true);
@@ -213,6 +214,32 @@ namespace mach::ecs::systems
         for (auto entity : view) {
             auto& transform = view.get<Transform>(entity);
             auto& phys = view.get<RigidBody>(entity);
+
+            if (!phys.body) continue;
+
+            btMotionState* motionState = phys.body->getMotionState();
+            if (!motionState) continue;
+
+            btTransform trans;
+            phys.body->getMotionState()->getWorldTransform(trans);
+            btVector3 pos = trans.getOrigin();
+            btQuaternion rot = trans.getRotation();
+
+            transform.position = glm::vec3(pos.x(), pos.y(), pos.z());
+            btVector3 euler;
+            rot.getEulerZYX(euler[2], euler[1], euler[0]); // ZYX = yaw, pitch, roll
+
+            // Assign to your rotation vector (assuming XYZ ordering)
+            transform.rotation = glm::vec3(euler.x(), euler.y(), euler.z());
+        }
+    }
+
+    inline void syncMeshColliderTransforms(entt::registry& registry) {
+        auto view = registry.view<Transform, MeshCollider>();
+
+        for (auto& entity : view) {
+            auto& transform = view.get<Transform>(entity);
+            auto& phys = view.get<MeshCollider>(entity);
 
             if (!phys.body) continue;
 
