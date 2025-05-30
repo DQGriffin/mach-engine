@@ -30,6 +30,8 @@ namespace mach::renderer
         Model(std::string path);
         void Draw(Shader& shader);
         void computeBounds();
+        std::vector<glm::vec3> getVertices();
+        std::vector<unsigned int> getIndices();
 
     private:
         void loadModel(std::string path);

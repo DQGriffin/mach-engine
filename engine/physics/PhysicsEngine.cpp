@@ -12,7 +12,7 @@ mach::physics::PhysicsEngine::PhysicsEngine()
     solver = new btSequentialImpulseConstraintSolver();
     world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, config);
 
-    setGravity(glm::vec3(0.0f, -9.81f, 0.0f));
+    setGravity(glm::vec3(0.0f, -12.81f, 0.0f));
     setPaused(false);
 }
 

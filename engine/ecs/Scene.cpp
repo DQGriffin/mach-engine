@@ -11,10 +11,12 @@
 #include "systems/MeshRendererSystem.h"
 #include "systems/PhysicsSystem.h"
 #include "systems/CameraSystem.h"
+#include "systems/FpsCharacterControllerSystem.h"
 #include "systems/ScriptSystem.h"
 
 mach::ecs::Scene::Scene()
 {
+    isFlyCam = false;
     registerEntityTypes();
     registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
 }
@@ -55,6 +57,7 @@ void mach::ecs::Scene::update(float deltaTime)
     this->deltaTime = deltaTime;
     mach::ecs::systems::render(registry);
     mach::ecs::systems::syncTransforms(registry);
+    mach::ecs::systems::syncMeshColliderTransforms(registry);
     mach::ecs::systems::updateCameras(registry);
     mach::ecs::systems::callUpdateScrips(registry, deltaTime);
     mach::ecs::systems::updateAnchorPositions(registry);
@@ -62,41 +65,26 @@ void mach::ecs::Scene::update(float deltaTime)
 
 void mach::ecs::Scene::registerInputCallbacks()
 {
+
     inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
+        if (key == MACH_KEY_SLASH)
+        {
+            LOG_INFO("Toggled flycam");
+            toggleFlyCamera(!isFlyCam);
+        }
+        return false;
+    }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Released);
+
+    inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
+        if (isFlyCam)
+        {
+            systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
+        }
+        else
+        {
+            mach::ecs::systems::fps::processInput(key, registry, playerEntity, activeCamera);
+        }
         // systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
-            if (key == MACH_KEY_W || key == MACH_KEY_A || key == MACH_KEY_S || key == MACH_KEY_D)
-            {
-                auto& rb = registry.get<mach::ecs::components::RigidBody>(playerEntity->handle());
-                auto& cam = registry.get<mach::ecs::components::Camera>(activeCamera->handle());
-
-                float movementSpeed = 7.0f;
-
-                float inputX = 0.0f;
-                float inputY = 0.0f;
-
-                if (key == MACH_KEY_W) inputY += 1.0f;
-                if (key == MACH_KEY_S) inputY -= 1.0f;
-                if (key == MACH_KEY_A) inputX -= 1.0f;
-                if (key == MACH_KEY_D) inputX += 1.0f;
-
-                glm::vec3 forward = cam.Front;
-                forward.y = 0.0f;
-
-                forward = glm::normalize(forward);
-
-
-                glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
-                glm::vec3 moveDir = forward * inputY + right * inputX;
-                moveDir = glm::normalize(moveDir);
-
-                auto vel = rb.body->getLinearVelocity();
-                vel.setX(moveDir.x * movementSpeed);
-                vel.setZ(moveDir.z * movementSpeed);
-                rb.body->setActivationState(DISABLE_DEACTIVATION);
-                rb.body->setDamping(0.97f, 0.2f);
-                rb.body->setLinearVelocity(vel);
-            }
-
         return false;
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Pressed);
 
@@ -122,6 +110,25 @@ void mach::ecs::Scene::registerInputCallbacks()
         systems::processMouseMovement(cameraComponent, xoffset, yoffset, true);
         return false;
     }, input::CallbackPriority::Gameplay);
+}
+
+void mach::ecs::Scene::toggleFlyCamera(bool value)
+{
+    isFlyCam = value;
+    if (isFlyCam)
+    {
+        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+        anchor.x = false;
+        anchor.y = false;
+        anchor.z = false;
+    }
+    else
+    {
+        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+        anchor.x = true;
+        anchor.y = true;
+        anchor.z = true;
+    }
 }
 
 void mach::ecs::Scene::registerEntityTypes()

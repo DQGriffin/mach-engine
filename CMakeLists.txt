@@ -72,6 +72,11 @@ add_library(mach STATIC library.cpp
         engine/ecs/components/PendingDeletion.h
         engine/ecs/components/Anchor.h
         engine/ecs/systems/AnchorSystem.h
+        engine/ecs/components/FpsCharacterController.h
+        engine/ecs/systems/FpsCharacterControllerSystem.h
+        engine/ecs/components/MeshCollider.h
+        engine/ecs/components/CapsuleCollider.h
+        engine/assets/loaders/shaders.h
 )
 
 target_link_libraries(mach
@@ -94,6 +99,7 @@ target_include_directories(mach PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
         ${CMAKE_SOURCE_DIR}/dependencies/sol2/include
         ${CMAKE_SOURCE_DIR}/dependencies/lua/src
+        ${CMAKE_SOURCE_DIR}/dependencies/cereal/include
 )
 
 target_include_directories(testbed PRIVATE
@@ -104,6 +110,7 @@ target_include_directories(testbed PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
         ${CMAKE_SOURCE_DIR}/dependencies/sol2/include
         ${CMAKE_SOURCE_DIR}/dependencies/lua/src
+        ${CMAKE_SOURCE_DIR}/dependencies/cereal/include
 )
 
 target_link_libraries(testbed PRIVATE mach)

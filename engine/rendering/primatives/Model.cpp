@@ -41,6 +41,31 @@ void mach::renderer::Model::computeBounds()
     }
 }
 
+std::vector<glm::vec3> mach::renderer::Model::getVertices()
+{
+    std::vector<glm::vec3> vertices;
+    for (const Mesh& mesh : meshes)
+    {
+        for (const Vertex& vertex : mesh.vertices)
+        {
+            vertices.push_back(vertex.Position);
+        }
+    }
+
+    return vertices;
+}
+
+std::vector<unsigned int> mach::renderer::Model::getIndices()
+{
+    std::vector<unsigned int> indices;
+    for (const Mesh& mesh : meshes)
+    {
+        indices.insert(indices.end(), mesh.indices.begin(), mesh.indices.end());
+    }
+
+    return indices;
+}
+
 void mach::renderer::Model::loadModel(std::string path)
 {
     Assimp::Importer importer;
