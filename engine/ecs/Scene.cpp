@@ -16,6 +16,7 @@
 
 mach::ecs::Scene::Scene()
 {
+    isFlyCam = false;
     registerEntityTypes();
     registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
 }
@@ -63,8 +64,25 @@ void mach::ecs::Scene::update(float deltaTime)
 
 void mach::ecs::Scene::registerInputCallbacks()
 {
+
     inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
-        mach::ecs::systems::fps::processInput(key, registry, playerEntity, activeCamera);
+        if (key == MACH_KEY_SLASH)
+        {
+            LOG_INFO("Toggled flycam");
+            toggleFlyCamera(!isFlyCam);
+        }
+        return false;
+    }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Released);
+
+    inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
+        if (isFlyCam)
+        {
+            systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
+        }
+        else
+        {
+            mach::ecs::systems::fps::processInput(key, registry, playerEntity, activeCamera);
+        }
         // systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
         return false;
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Pressed);
@@ -91,6 +109,25 @@ void mach::ecs::Scene::registerInputCallbacks()
         systems::processMouseMovement(cameraComponent, xoffset, yoffset, true);
         return false;
     }, input::CallbackPriority::Gameplay);
+}
+
+void mach::ecs::Scene::toggleFlyCamera(bool value)
+{
+    isFlyCam = value;
+    if (isFlyCam)
+    {
+        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+        anchor.x = false;
+        anchor.y = false;
+        anchor.z = false;
+    }
+    else
+    {
+        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+        anchor.x = true;
+        anchor.y = true;
+        anchor.z = true;
+    }
 }
 
 void mach::ecs::Scene::registerEntityTypes()

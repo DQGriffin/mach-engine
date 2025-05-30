@@ -41,6 +41,20 @@ void mach::renderer::Model::computeBounds()
     }
 }
 
+std::vector<glm::vec3> mach::renderer::Model::getVertices()
+{
+    std::vector<glm::vec3> vertices;
+    for (const Mesh& mesh : meshes)
+    {
+        for (const Vertex& vertex : mesh.vertices)
+        {
+            vertices.push_back(vertex.Position);
+        }
+    }
+
+    return vertices;
+}
+
 void mach::renderer::Model::loadModel(std::string path)
 {
     Assimp::Importer importer;

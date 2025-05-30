@@ -74,6 +74,8 @@ add_library(mach STATIC library.cpp
         engine/ecs/systems/AnchorSystem.h
         engine/ecs/components/FpsCharacterController.h
         engine/ecs/systems/FpsCharacterControllerSystem.h
+        engine/ecs/components/MeshCollider.h
+        engine/ecs/components/CapsuleCollider.h
 )
 
 target_link_libraries(mach

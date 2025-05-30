@@ -29,6 +29,7 @@ namespace mach::ecs
     private:
         entt::registry registry;
         float deltaTime;
+        bool isFlyCam;
 
     public:
         Scene();
@@ -41,6 +42,7 @@ namespace mach::ecs
         void update(float deltaTime);
         entt::registry& getRegistry() { return registry; }
         void registerInputCallbacks();
+        void toggleFlyCamera(bool value);
 
     private:
         void registerEntityTypes();
