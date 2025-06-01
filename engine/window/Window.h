@@ -48,6 +48,7 @@ namespace mach
         void onMouseMoved(int x, int y);
         bool getMouseCaptureState() const;
         static void registerMousePositionCallback(Window& window, MousePositionCallback callback);
+        GLFWwindow* getGLFWwindow();
     private:
         // void framebuffer_size_callback(GLFWwindow* window, int width, int height);
         static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {

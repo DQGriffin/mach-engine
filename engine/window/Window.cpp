@@ -160,3 +160,8 @@ void mach::Window::registerMousePositionCallback(Window &window, MousePositionCa
 {
     window.mousePositionCallback = callback;
 }
+
+GLFWwindow* mach::Window::getGLFWwindow()
+{
+    return window;
+}

@@ -74,6 +74,20 @@ void mach::input::InputEngine::processInput()
             this->notifyKeyPressSubscribers(i, KeyEventTrigger::Released);
         }
     }
+
+    for (int i = MACH_KEY_WORLD_1; i <= MACH_KEY_MENU; i++)
+    {
+        if (this->window->isKeyPressed(i))
+        {
+            this->handleKeyPressed(i);
+            this->notifyKeyPressSubscribers(i, KeyEventTrigger::Pressed);
+        }
+        else if (this->pressedKeys.contains(i))
+        {
+            this->handleKeyReleased(i);
+            this->notifyKeyPressSubscribers(i, KeyEventTrigger::Released);
+        }
+    }
 }
 
 void mach::input::InputEngine::bind(const char *name, int keyCode, int keyAction)
