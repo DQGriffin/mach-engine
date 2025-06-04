@@ -31,6 +31,8 @@
 #include "../engine/rendering/primatives/Model.h"
 #include "../engine/rendering/debug/DebugLineRenderer.h"
 #include "../engine/rendering/debug/BulletDebugDrawer.h"
+#include "../engine/serialization/SceneSerialization.h"
+#include "../engine/serialization/PlainTextSceneSerializer.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -67,6 +69,9 @@ int main()
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
 
+    mach::serialization::PlainTextSceneSerializer serializer;
+    serializer.deserialize(scene.getRegistry(), assets, scene.physics, "/Users/griffin/scene.machsp");
+
     mach::Window::registerMousePositionCallback(window, [&inputEngine](int xpos, int ypos) {
         inputEngine.windowMousePositionCallback(xpos, ypos);
     });
@@ -90,26 +95,7 @@ int main()
     Shader& lightingShader = assets.requireShader("lighting");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
 
-    auto model = assets.requireModel("/Users/griffin/Game Assets/Models/Authored/Low Poly Bed/wavefront/bed.obj");
-    auto floorModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/floor-thing/floor-thing.obj");
     auto monkeyModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/monkey/monkey.obj");
-    auto roomModel = assets.requireModel("/Users/griffin/Game Assets/Models/Authored/Room Slice/wavefront/room.obj");
-
-    auto roomEntity = scene.createEntity("Room 1");
-    roomEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(-10.0f, 4.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    roomEntity.addComponent<mach::ecs::components::ModelRenderer>(&roomModel, &lightingShader);
-
-    auto backpackEntity = scene.createEntity("Backpack 1");
-    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(1.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
-
-    auto backpackEntity2 = scene.createEntity("Backpack 2");
-    backpackEntity2.addComponent<mach::ecs::components::Transform>(glm::vec3(5.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    backpackEntity2.addComponent<mach::ecs::components::ModelRenderer>(&model, &lightingShader);
-
-    auto floorEntity = scene.createEntity("Floor 1");
-    floorEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    floorEntity.addComponent<mach::ecs::components::ModelRenderer>(&floorModel, &lightingShader);
 
     auto playerEntity = scene.createEntity("Player 1");
     playerEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(8.0f, 25.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.3f));
@@ -117,16 +103,8 @@ int main()
     scene.getRegistry().emplace<mach::ecs::components::FpsCharacterController>(playerEntity.handle());
     scene.setPlayerEntity(&playerEntity);
 
-    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity.handle(), scene.physics.world, model, false, 505.0f);
-    mach::physics::createPhysicsBody(scene.getRegistry(), backpackEntity2.handle(), scene.physics.world, model, false, 550.0f);
-    mach::physics::createPhysicsBody(scene.getRegistry(), floorEntity.handle(), scene.physics.world, floorModel, false, 0.0f);
     mach::physics::createPhysicsBody(scene.getRegistry(), playerEntity.handle(), scene.physics.world, monkeyModel, true, 10.0f);
     // mach::physics::createPhysicsBody(scene.getRegistry(), roomEntity.handle(), scene.physics.world, roomModel, false, 0.0f);
-
-
-    const auto& verts = roomModel.getVertices();
-
-    mach::physics::createMeshCollider(scene.getRegistry(), roomEntity.handle(), scene.physics.world, verts, roomModel.getIndices(), 0.0f);
 
     auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
     anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);
