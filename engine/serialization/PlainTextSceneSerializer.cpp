@@ -16,7 +16,7 @@
 #include "../physics/PhysicsEngine.h"
 #include "../utils/string_utils.h"
 
-enum class ParseState { None, Entity, Transform, Model, Rigidbody };
+enum class ParseState { None, Entity, Transform, Model, Rigidbody, MeshCollider };
 
 void mach::serialization::PlainTextSceneSerializer::serialize(entt::registry& registry, const std::string& path)
 {
@@ -40,6 +40,7 @@ void mach::serialization::PlainTextSceneSerializer::serialize(entt::registry& re
         serializeTransformComponent(file, registry, entity);
         serializeModelComponent(file, registry, entity);
         serializeRigidBodyComponent(file, registry, entity);
+        serializeMeshColliderComponent(file, registry, entity);
         file << std::endl;
     }
 
@@ -76,7 +77,11 @@ void mach::serialization::PlainTextSceneSerializer::deserialize(entt::registry& 
             state = ParseState::Model;
         } else if (line.starts_with("Rigidbody:")) {
             state = ParseState::Rigidbody;
-        } else if (state == ParseState::Transform) {
+        } else if (line.starts_with("MeshCollider:"))
+        {
+            state = ParseState::MeshCollider;
+        }
+        else if (state == ParseState::Transform) {
             if (line.contains("Position:"))
             {
                 auto transform = registry.try_get<mach::ecs::components::Transform>(current);
@@ -139,6 +144,24 @@ void mach::serialization::PlainTextSceneSerializer::deserialize(entt::registry& 
                 mach::physics::createPhysicsBody(registry, current, physics.world, *modelComponent->model, false, mass);
             }
         }
+        else if (state == ParseState::MeshCollider)
+        {
+            if (line.contains("Mass:"))
+            {
+                // Create the rigid body here. Need the model to be loaded first
+                auto modelComponent = registry.try_get<mach::ecs::components::ModelRenderer>(current);
+                if (modelComponent == nullptr)
+                {
+                    LOG_ERROR("Cannot deserialize mesh collider because the associated model was not loaded")
+                    continue;
+                }
+
+                auto massString = line.substr(line.find_last_of(":") + 2, line.size() - 2);
+                float mass = std::stof(massString);
+
+                mach::physics::createMeshCollider(registry, current, physics.world, modelComponent->model->getVertices(), modelComponent->model->getIndices(), mass);
+            }
+        }
     }
 
     file.close();
@@ -195,6 +218,18 @@ void mach::serialization::PlainTextSceneSerializer::serializeRigidBodyComponent(
     stream << "Rigidbody:" << std::endl;
     stream << "  Mass: " << rb->body->getMass() << std::endl;
     stream << "  Capsule: " << false << std::endl;
+}
+
+void mach::serialization::PlainTextSceneSerializer::serializeMeshColliderComponent(std::ofstream& stream, const entt::registry& registry, const entt::entity& entity)
+{
+    auto meshCollider = registry.try_get<mach::ecs::components::MeshCollider>(entity);
+    if (meshCollider == nullptr)
+    {
+        return;
+    }
+
+    stream << "MeshCollider: " << std::endl;
+    stream << "  Mass: " << meshCollider->body->getMass() << std::endl;
 }
 
 void mach::serialization::PlainTextSceneSerializer::serializeVec3(std::ofstream& stream, const glm::vec3& vec)

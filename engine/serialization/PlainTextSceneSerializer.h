@@ -32,6 +32,7 @@ namespace mach::serialization
         void serializeTransformComponent(std::ofstream& stream, const entt::registry& registry, const entt::entity& entity);
         void serializeModelComponent(std::ofstream& stream, const entt::registry& registry, const entt::entity& entity);
         void serializeRigidBodyComponent(std::ofstream& stream, const entt::registry& registry, const entt::entity& entity);
+        void serializeMeshColliderComponent(std::ofstream& stream, const entt::registry& registry, const entt::entity& entity);
         void serializeVec3(std::ofstream& stream, const glm::vec3& vec);
         glm::vec3 parseVec3(const std::string& str);
 

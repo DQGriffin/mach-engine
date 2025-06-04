@@ -175,6 +175,10 @@ namespace mach::physics
         transform.setIdentity();
         transform.setOrigin(position);
 
+        btQuaternion quat;
+        quat.setEulerZYX(entityTransform.rotation.z, entityTransform.rotation.y, entityTransform.rotation.x);
+        transform.setRotation(quat);
+
         // Motion state
         btDefaultMotionState* motionState = new btDefaultMotionState(transform);
 

@@ -90,6 +90,7 @@ int main(int argc, const char * argv[])
     scene.physics.setDebugDrawer(drawer);
     scene.physics.setDrawWireframe(true);
     scene.physics.setDrawWireframe(true);
+    scene.setProcessMouseInput(false);
 
     mach::serialization::PlainTextSceneSerializer serializer;
     serializer.deserialize(scene.getRegistry(), assets, scene.physics, "/Users/griffin/scene.machsp");
@@ -114,6 +115,14 @@ int main(int argc, const char * argv[])
             LOG_DEBUG("Toggling flycam")
             scene.isFlyCam = !scene.isFlyCam;
         }
+
+        if (key == MACH_KEY_SLASH)
+        {
+            window.setMouseCaptured(!window.getMouseCaptureState());
+            scene.isFlyCam = !scene.isFlyCam;
+            scene.setProcessMouseInput(!scene.getProcessMouseInput());
+        }
+
         return false;
     }, mach::input::CallbackPriority::EditorUI, mach::input::KeyEventTrigger::Released);
 
@@ -423,9 +432,9 @@ int main(int argc, const char * argv[])
                 ImGui::InputFloat("Z", &transformComponent->position.z, 0.5f, 1.0f);
 
                 ImGui::TextColored(ImVec4(1,1,0,1), "Rotation");
-                ImGui::InputFloat("X#", &transformComponent->rotation.x, 15.0f, 30.0f);
-                ImGui::InputFloat("Y#", &transformComponent->rotation.y, 15.0f, 30.0f);
-                ImGui::InputFloat("Z#", &transformComponent->rotation.z, 15.0f, 30.0f);
+                ImGui::InputFloat("X#", &transformComponent->rotation.x, 0.261799f, 30.0f);
+                ImGui::InputFloat("Y#", &transformComponent->rotation.y, 0.261799f, 30.0f);
+                ImGui::InputFloat("Z#", &transformComponent->rotation.z, 0.261799f, 30.0f);
 
                 ImGui::TextColored(ImVec4(1,1,0,1), "Scale");
                 ImGui::InputFloat("X##", &transformComponent->scale.x, 0.5f, 1.0f);
@@ -465,6 +474,10 @@ int main(int argc, const char * argv[])
                 }
                 ImGui::Text("Static: %s", rigidBody->body->getMass() == 0.0f ? "Yes" : "No");
                 ImGui::Text("Mass: %f", rigidBody->body->getMass());
+                if (ImGui::Button("Remove"))
+                {
+                    scene.getRegistry().remove<mach::ecs::components::RigidBody>(selectedEntity);
+                }
             }
         }
 
@@ -487,6 +500,18 @@ int main(int argc, const char * argv[])
                 }
                 ImGui::Text("Static: %s", meshCollider->body->getMass() == 0.0f ? "Yes" : "No");
                 ImGui::Text("Mass: %f", meshCollider->body->getMass());
+                if (ImGui::Button("Remove"))
+                {
+                    auto collider = scene.getRegistry().try_get<mach::ecs::components::MeshCollider>(selectedEntity);
+                    if (collider != nullptr)
+                    {
+                        collider->world->removeRigidBody(collider->body);
+                        delete collider->body;
+                        delete collider->motionState;
+                        delete collider->shape;
+                        scene.getRegistry().remove<mach::ecs::components::MeshCollider>(selectedEntity);
+                    }
+                }
             }
         }
 
