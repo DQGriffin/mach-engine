@@ -91,6 +91,7 @@ int main(int argc, const char * argv[])
     scene.physics.setDrawWireframe(true);
     scene.physics.setDrawWireframe(true);
     scene.setProcessMouseInput(false);
+    scene.physics.setPaused(true);
 
     mach::serialization::PlainTextSceneSerializer serializer;
     serializer.deserialize(scene.getRegistry(), assets, scene.physics, "/Users/griffin/scene.machsp");
@@ -121,6 +122,11 @@ int main(int argc, const char * argv[])
             window.setMouseCaptured(!window.getMouseCaptureState());
             scene.isFlyCam = !scene.isFlyCam;
             scene.setProcessMouseInput(!scene.getProcessMouseInput());
+        }
+
+        if (key == MACH_KEY_BACKSLASH)
+        {
+            scene.physics.isPaused = !scene.physics.isPaused;
         }
 
         return false;
@@ -474,6 +480,15 @@ int main(int argc, const char * argv[])
                 }
                 ImGui::Text("Static: %s", rigidBody->body->getMass() == 0.0f ? "Yes" : "No");
                 ImGui::Text("Mass: %f", rigidBody->body->getMass());
+                char massInput[32];
+                ImGui::InputText("Edit", massInput, sizeof(massInput));
+                if (ImGui::Button("Set Mass"))
+                {
+                    std::stringstream ss(massInput);
+                    auto massString = ss.str();
+                    float mass = std::stof(massString);
+                    rigidBody->body->setMassProps(mass, btVector3(0, 0, 0));
+                }
                 if (ImGui::Button("Remove"))
                 {
                     scene.getRegistry().remove<mach::ecs::components::RigidBody>(selectedEntity);
@@ -500,6 +515,15 @@ int main(int argc, const char * argv[])
                 }
                 ImGui::Text("Static: %s", meshCollider->body->getMass() == 0.0f ? "Yes" : "No");
                 ImGui::Text("Mass: %f", meshCollider->body->getMass());
+                char massInput[32];
+                ImGui::InputText("Edit", massInput, sizeof(massInput));
+                if (ImGui::Button("Set Mass"))
+                {
+                    std::stringstream ss(massInput);
+                    auto massString = ss.str();
+                    float mass = std::stof(massString);
+                    meshCollider->body->setMassProps(mass, btVector3(0, 0, 0));
+                }
                 if (ImGui::Button("Remove"))
                 {
                     auto collider = scene.getRegistry().try_get<mach::ecs::components::MeshCollider>(selectedEntity);
