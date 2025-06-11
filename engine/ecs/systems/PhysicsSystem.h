@@ -46,9 +46,9 @@ namespace mach::physics
         const AABB& bounds = model.bounds;
 
         // Bullet wants half-extents
-        btVector3 halfExtents(bounds.halfExtents().x,
-                              bounds.halfExtents().y,
-                              bounds.halfExtents().z);
+        btVector3 halfExtents(bounds.halfExtents().x * transform.scale.x,
+                              bounds.halfExtents().y * transform.scale.y,
+                              bounds.halfExtents().z * transform.scale.z);
 
         btBoxShape* boxShape = new btBoxShape(halfExtents);
 
@@ -151,9 +151,9 @@ namespace mach::physics
                 const glm::vec3& v0 = verts[indices[i]];
                 const glm::vec3& v1 = verts[indices[i + 1]];
                 const glm::vec3& v2 = verts[indices[i + 2]];
-                triMesh->addTriangle(btVector3(v0.x, v0.y, v0.z),
-                                  btVector3(v1.x, v1.y, v1.z),
-                                  btVector3(v2.x, v2.y, v2.z));
+                triMesh->addTriangle(btVector3(v0.x * entityTransform.scale.x, v0.y * entityTransform.scale.y, v0.z * entityTransform.scale.z),
+                                  btVector3(v1.x * entityTransform.scale.x, v1.y * entityTransform.scale.y, v1.z * entityTransform.scale.z),
+                                  btVector3(v2.x * entityTransform.scale.x, v2.y * entityTransform.scale.y, v2.z * entityTransform.scale.z));
             }
 
             shape = new btBvhTriangleMeshShape(triMesh, true);
@@ -174,6 +174,10 @@ namespace mach::physics
         btTransform transform;
         transform.setIdentity();
         transform.setOrigin(position);
+
+        btQuaternion quat;
+        quat.setEulerZYX(entityTransform.rotation.z, entityTransform.rotation.y, entityTransform.rotation.x);
+        transform.setRotation(quat);
 
         // Motion state
         btDefaultMotionState* motionState = new btDefaultMotionState(transform);
@@ -262,13 +266,13 @@ namespace mach::ecs::systems
 
     inline void onRigidBodyDestroyed(entt::registry& registry, entt::entity entity)
     {
-        auto& rb = registry.get<RigidBody>(entity);
-        if (rb.body) {
-            rb.world->removeRigidBody(rb.body);
-            delete rb.body;
-            delete rb.motionState;
-            delete rb.shape;
-            rb.body = nullptr;
+        auto rb = registry.try_get<RigidBody>(entity);
+        if (rb != nullptr && rb->body) {
+            rb->world->removeRigidBody(rb->body);
+            delete rb->body;
+            delete rb->motionState;
+            delete rb->shape;
+            rb->body = nullptr;
         }
     }
 

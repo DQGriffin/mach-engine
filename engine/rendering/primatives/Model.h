@@ -21,6 +21,7 @@ namespace mach::renderer
         std::vector<Mesh> meshes;
         std::string directory;
         std::vector<Texture> textures_loaded;
+        std::string path;
 
     public:
         AABB bounds;
@@ -32,6 +33,7 @@ namespace mach::renderer
         void computeBounds();
         std::vector<glm::vec3> getVertices();
         std::vector<unsigned int> getIndices();
+        std::string getPath();
 
     private:
         void loadModel(std::string path);

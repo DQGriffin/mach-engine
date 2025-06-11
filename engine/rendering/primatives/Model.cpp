@@ -14,12 +14,14 @@ mach::renderer::Model::Model(char *path)
 {
     loadModel(path);
     computeBounds();
+    this->path = path;
 }
 
 mach::renderer::Model::Model(std::string path)
 {
     loadModel(path);
     computeBounds();
+    this->path = path;
 }
 
 void mach::renderer::Model::Draw(Shader &shader)
@@ -64,6 +66,11 @@ std::vector<unsigned int> mach::renderer::Model::getIndices()
     }
 
     return indices;
+}
+
+std::string mach::renderer::Model::getPath()
+{
+    return path;
 }
 
 void mach::renderer::Model::loadModel(std::string path)

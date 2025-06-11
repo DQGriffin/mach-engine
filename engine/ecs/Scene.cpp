@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "components/RigidBody.h"
 #include "Entity.h"
+#include "../serialization/PlainTextSceneSerializer.h"
+#include "../serialization/SceneSerialization.h"
 #include "components/Name.h"
 #include "components/PendingDeletion.h"
 #include "systems/AnchorSystem.h"
@@ -36,7 +38,7 @@ mach::ecs::Entity mach::ecs::Scene::createEntity(const std::string &name)
 mach::ecs::Entity mach::ecs::Scene::createCameraEntity(const std::string &name, glm::vec3 position)
 {
     auto entity = createEntity(name);
-    registry.emplace<components::Transform>(entity.handle(), position, position, glm::vec3(1.0, 1.0, 1.0f));
+    auto& c = registry.emplace<components::Transform>(entity.handle(), position, position, glm::vec3(1.0, 1.0, 1.0f));
     registry.emplace<components::Camera>(entity.handle());
     return entity;
 }
@@ -69,8 +71,7 @@ void mach::ecs::Scene::registerInputCallbacks()
     inputEngine->registerKeyPressCallback([this](int key, int duration) -> bool {
         if (key == MACH_KEY_SLASH)
         {
-            LOG_INFO("Toggled flycam");
-            toggleFlyCamera(!isFlyCam);
+            isFlyCam = !isFlyCam;
         }
         return false;
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Released);
@@ -89,6 +90,8 @@ void mach::ecs::Scene::registerInputCallbacks()
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Pressed);
 
     inputEngine->registerMousePositionCallback([this](int x, int y) -> bool {
+        if (!processMouseInput) return false;
+
         auto& cameraComponent = registry.get<mach::ecs::components::Camera>(activeCamera->handle());
 
         float xpos = static_cast<float>(x);
@@ -114,20 +117,52 @@ void mach::ecs::Scene::registerInputCallbacks()
 
 void mach::ecs::Scene::toggleFlyCamera(bool value)
 {
-    isFlyCam = value;
-    if (isFlyCam)
+    // isFlyCam = value;
+    // if (isFlyCam)
+    // {
+    //     auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+    //     anchor.x = false;
+    //     anchor.y = false;
+    //     anchor.z = false;
+    // }
+    // else
+    // {
+    //     auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
+    //     anchor.x = true;
+    //     anchor.y = true;
+    //     anchor.z = true;
+    // }
+}
+
+bool mach::ecs::Scene::getProcessMouseInput()
+{
+    return processMouseInput;
+}
+
+void mach::ecs::Scene::setProcessMouseInput(bool value)
+{
+    processMouseInput = value;
+}
+
+void mach::ecs::Scene::serialize(const std::string& path, SerializationType type)
+{
+    switch (type)
     {
-        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
-        anchor.x = false;
-        anchor.y = false;
-        anchor.z = false;
-    }
-    else
-    {
-        auto& anchor = registry.get<mach::ecs::components::Anchor>(activeCamera->handle());
-        anchor.x = true;
-        anchor.y = true;
-        anchor.z = true;
+        case SerializationType::PLAIN_TEXT:
+            serialization::PlainTextSceneSerializer serializer;
+            serializer.serialize(registry, path);
+            break;
+        case SerializationType::JSON:
+            LOG_ERROR("JSON serialization is not yet supported");
+            break;
+        case SerializationType::BINARY:
+            LOG_ERROR("Binary serialization is not yet supported");
+            break;
+        case SerializationType::YAML:
+            LOG_ERROR("YAML serialization is not yet supported");
+            break;
+        default:
+            LOG_ERROR("Unknown serialization type");
     }
 }
 

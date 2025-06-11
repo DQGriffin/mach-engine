@@ -17,6 +17,14 @@ namespace mach::ecs
 {
     class Entity;
 
+    enum class SerializationType
+    {
+        PLAIN_TEXT = 1,
+        JSON,
+        YAML,
+        BINARY,
+    };
+
     class Scene
     {
     public:
@@ -25,11 +33,12 @@ namespace mach::ecs
         mach::input::InputEngine* inputEngine;
         mach::physics::PhysicsEngine physics;
         mach::scripting::lua::StateManager luaManager;
+        bool isFlyCam = true;
 
     private:
         entt::registry registry;
         float deltaTime;
-        bool isFlyCam;
+        bool processMouseInput = true;
 
     public:
         Scene();
@@ -43,6 +52,9 @@ namespace mach::ecs
         entt::registry& getRegistry() { return registry; }
         void registerInputCallbacks();
         void toggleFlyCamera(bool value);
+        bool getProcessMouseInput();
+        void setProcessMouseInput(bool value);
+        void serialize(const std::string& path, SerializationType type);
 
     private:
         void registerEntityTypes();

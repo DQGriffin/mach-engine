@@ -77,6 +77,10 @@ add_library(mach STATIC library.cpp
         engine/ecs/components/MeshCollider.h
         engine/ecs/components/CapsuleCollider.h
         engine/assets/loaders/shaders.h
+        engine/serialization/SceneSerialization.h
+        engine/serialization/PlainTextSceneSerializer.cpp
+        engine/serialization/PlainTextSceneSerializer.h
+        engine/utils/string_utils.h
 )
 
 target_link_libraries(mach
@@ -90,6 +94,36 @@ target_link_libraries(mach PRIVATE liblua_static)
 
 add_executable(testbed
         testbed/main.cpp)
+
+file(GLOB IMGUI_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imGui/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imGui/*.h"
+)
+
+add_executable(studio
+        mach-studio/main.cpp
+        ${IMGUI_SOURCES}
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imconfig.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui_demo.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui_draw.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui_internal.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui_tables.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui_widgets.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imgui.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imstb_rectpack.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imstb_textedit.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/imstb_truetype.h
+
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/backends/imgui_impl_opengl3_loader.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/backends/imgui_impl_opengl3.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/backends/imgui_impl_opengl3.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/backends/imgui_impl_glfw.cpp
+
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/misc/cpp/imgui_stdlib.h
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui/misc/cpp/imgui_stdlib.cpp
+)
+
 
 target_include_directories(mach PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/glfw/include
@@ -113,7 +147,21 @@ target_include_directories(testbed PRIVATE
         ${CMAKE_SOURCE_DIR}/dependencies/cereal/include
 )
 
+target_include_directories(studio PRIVATE
+        ${CMAKE_SOURCE_DIR}/engine
+        ${CMAKE_SOURCE_DIR}/dependencies/glfw/include
+        ${CMAKE_SOURCE_DIR}/dependencies/glm/include
+        ${CMAKE_SOURCE_DIR}/dependencies/glad/include
+        ${CMAKE_SOURCE_DIR}/dependencies/assimp/include
+        ${CMAKE_SOURCE_DIR}/dependencies/bullet/src
+        ${CMAKE_SOURCE_DIR}/dependencies/sol2/include
+        ${CMAKE_SOURCE_DIR}/dependencies/lua/src
+        ${CMAKE_SOURCE_DIR}/dependencies/cereal/include
+        ${CMAKE_SOURCE_DIR}/dependencies/imGui
+)
+
 target_link_libraries(testbed PRIVATE mach)
+target_link_libraries(studio PRIVATE mach)
 add_definitions(-DENABLE_LOGGING)
 
 find_package(OpenGL REQUIRED)
