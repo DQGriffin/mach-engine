@@ -81,6 +81,7 @@ add_library(mach STATIC library.cpp
         engine/serialization/PlainTextSceneSerializer.cpp
         engine/serialization/PlainTextSceneSerializer.h
         engine/utils/string_utils.h
+        engine/ecs/components/PointLight.h
 )
 
 target_link_libraries(mach

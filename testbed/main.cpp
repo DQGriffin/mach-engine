@@ -17,6 +17,7 @@
 #include "../engine/ecs/components/FpsCharacterController.h"
 #include "../engine/ecs/components/MeshRender.h"
 #include "../engine/ecs/components/PendingDeletion.h"
+#include "../engine/ecs/components/PointLight.h"
 #include "../engine/ecs/components/Transform.h"
 #include "../engine/ecs/systems/MeshRendererSystem.h"
 #include "../engine/ecs/systems/PhysicsSystem.h"
@@ -62,9 +63,9 @@ int main()
 
     mach::ecs::Scene scene;
     scene.inputEngine = &inputEngine;
-    scene.physics.setDebugDrawer(drawer);
-    scene.physics.setDrawWireframe(true);
-    scene.physics.setDrawWireframe(true);
+    // scene.physics.setDebugDrawer(drawer);
+    // scene.physics.setDrawWireframe(true);
+    // scene.physics.setDrawWireframe(true);
     auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
@@ -86,11 +87,19 @@ int main()
     }, mach::input::CallbackPriority::Gameplay, mach::input::KeyEventTrigger::Released);
 
     glm::vec3 pointLightPositions[] = {
-        glm::vec3( 0.7f, 0.2f, 2.0f),
-        glm::vec3( 2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f, 2.0f, -12.0f),
-        glm::vec3( 0.0f, 0.0f, -3.0f)
+        glm::vec3( 0.7f, 1000.2f, 2.0f),
+        glm::vec3( 2.3f, -3000.3f, -4.0f),
+        glm::vec3(-4.0f, 2000.0f, -12.0f),
+        glm::vec3( 0.0f, 2000.0f, -3.0f)
     };
+
+    for (auto& lightPosition : pointLightPositions)
+    {
+        auto entity = scene.createEntity("PointLight");
+        auto& light = scene.getRegistry().emplace<mach::ecs::components::PointLight>(entity.handle());
+        auto& transform = scene.getRegistry().emplace<mach::ecs::components::Transform>(entity.handle());
+        transform.position = lightPosition;
+    }
 
     Shader& lightingShader = assets.requireShader("lighting");
     Shader lightCubeShader("/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/vertex.glsl", "/Users/griffin/dev/LearnOpenGL/LearnOpenGL/shaders/light/fragment.glsl");
@@ -150,20 +159,25 @@ int main()
         lightingShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
         lightingShader.setVec3("dirLight.specular", 1.0f, 1.0f, 1.0f);
 
-        // set point light values
-        for (int i = 0; i < 4; i++)
+        auto entityView = scene.getRegistry().view<mach::ecs::components::PointLight>();
+        int pointLightIndex = 0;
+
+        for (auto& entity : entityView)
         {
+            auto& light = scene.getRegistry().get<mach::ecs::components::PointLight>(entity);
+            auto& trans = scene.getRegistry().get<mach::ecs::components::Transform>(entity);
             std::string accessor = "pointLights[";
-            accessor.append(std::to_string(i));
+            accessor.append(std::to_string(pointLightIndex));
             accessor.append("]");
 
-            lightingShader.setVec3(std::format("{}.position", accessor), pointLightPositions[i]);
-            lightingShader.setFloat(std::format("{}.constant", accessor), 1.0f);
-            lightingShader.setFloat(std::format("{}.linear", accessor), 0.09f);
-            lightingShader.setFloat(std::format("{}.quadratic", accessor), 0.032f);
-            lightingShader.setVec3(std::format("{}.ambient", accessor), 0.1f, 0.1f, 0.1f);
-            lightingShader.setVec3(std::format("{}.diffuse", accessor), 0.8f, 0.8f, 0.8f);
-            lightingShader.setVec3(std::format("{}.specular", accessor), 1.0f, 1.0f, 1.0f);
+            lightingShader.setVec3(std::format("{}.position", accessor), trans.position);
+            lightingShader.setFloat(std::format("{}.constant", accessor), light.constant);
+            lightingShader.setFloat(std::format("{}.linear", accessor), light.linear);
+            lightingShader.setFloat(std::format("{}.quadratic", accessor), light.quadratic);
+            lightingShader.setVec3(std::format("{}.ambient", accessor), light.ambientColor);
+            lightingShader.setVec3(std::format("{}.diffuse", accessor), light.diffuseColor);
+            lightingShader.setVec3(std::format("{}.specular", accessor), light.specularColor);
+            pointLightIndex++;
         }
 
         // set spot light values
