@@ -9,6 +9,7 @@
 #include "../input/input.h"
 #include "../physics/PhysicsEngine.h"
 #include "../rendering/camera/Camera.h"
+#include "../rendering/debug/BulletDebugDrawer.h"
 #include "../scripting/lua/types/lua_types.h"
 #include "../scripting/lua/types/StateManager.h"
 #include "systems/CameraSystem.h"
@@ -31,6 +32,7 @@ namespace mach::ecs
         Entity* activeCamera;
         Entity* playerEntity;
         mach::input::InputEngine* inputEngine;
+        mach::renderer::DebugLineRenderer* debugLineRenderer;
         mach::physics::PhysicsEngine physics;
         mach::scripting::lua::StateManager luaManager;
         bool isFlyCam = true;

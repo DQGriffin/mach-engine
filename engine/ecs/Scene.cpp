@@ -15,9 +15,11 @@
 #include "systems/CameraSystem.h"
 #include "systems/FpsCharacterControllerSystem.h"
 #include "systems/ScriptSystem.h"
+#include "systems/ZoneSystem.h"
 
 mach::ecs::Scene::Scene()
 {
+    debugLineRenderer = nullptr;
     isFlyCam = false;
     registerEntityTypes();
     registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
@@ -63,6 +65,8 @@ void mach::ecs::Scene::update(float deltaTime)
     mach::ecs::systems::updateCameras(registry);
     mach::ecs::systems::callUpdateScrips(registry, deltaTime);
     mach::ecs::systems::updateAnchorPositions(registry);
+    mach::ecs::systems::updateZones(registry);
+    mach::ecs::systems::drawZones(registry, debugLineRenderer);
 }
 
 void mach::ecs::Scene::registerInputCallbacks()
