@@ -82,6 +82,9 @@ add_library(mach STATIC library.cpp
         engine/serialization/PlainTextSceneSerializer.h
         engine/utils/string_utils.h
         engine/ecs/components/PointLight.h
+        engine/ecs/components/Zone.h
+        engine/ecs/systems/ZoneSystem.h
+        engine/ecs/components/ZoneTrigger.h
 )
 
 target_link_libraries(mach

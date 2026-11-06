@@ -15,9 +15,11 @@
 #include "systems/CameraSystem.h"
 #include "systems/FpsCharacterControllerSystem.h"
 #include "systems/ScriptSystem.h"
+#include "systems/ZoneSystem.h"
 
 mach::ecs::Scene::Scene()
 {
+    debugLineRenderer = nullptr;
     isFlyCam = false;
     registerEntityTypes();
     registry.on_destroy<components::RigidBody>().connect<&systems::onRigidBodyDestroyed>();
@@ -39,7 +41,10 @@ mach::ecs::Entity mach::ecs::Scene::createCameraEntity(const std::string &name, 
 {
     auto entity = createEntity(name);
     auto& c = registry.emplace<components::Transform>(entity.handle(), position, position, glm::vec3(1.0, 1.0, 1.0f));
-    registry.emplace<components::Camera>(entity.handle());
+    auto& cam = registry.emplace<components::Camera>(entity.handle());
+
+    // For testing top-down camera
+    cam.Pitch = -90.0f;
     return entity;
 }
 
@@ -63,6 +68,8 @@ void mach::ecs::Scene::update(float deltaTime)
     mach::ecs::systems::updateCameras(registry);
     mach::ecs::systems::callUpdateScrips(registry, deltaTime);
     mach::ecs::systems::updateAnchorPositions(registry);
+    mach::ecs::systems::updateZones(registry);
+    mach::ecs::systems::drawZones(registry, debugLineRenderer);
 }
 
 void mach::ecs::Scene::registerInputCallbacks()

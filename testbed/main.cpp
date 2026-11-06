@@ -34,6 +34,8 @@
 #include "../engine/rendering/debug/BulletDebugDrawer.h"
 #include "../engine/serialization/SceneSerialization.h"
 #include "../engine/serialization/PlainTextSceneSerializer.h"
+#include "../engine/ecs/components/Zone.h"
+#include "../engine/ecs/components/ZoneTrigger.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -63,10 +65,12 @@ int main()
 
     mach::ecs::Scene scene;
     scene.inputEngine = &inputEngine;
+    scene.debugLineRenderer = &lineRenderer;
     // scene.physics.setDebugDrawer(drawer);
     // scene.physics.setDrawWireframe(true);
     // scene.physics.setDrawWireframe(true);
     auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
+    scene.setProcessMouseInput(false);
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
 
@@ -110,18 +114,26 @@ int main()
     playerEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(8.0f, 25.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.3f));
     playerEntity.addComponent<mach::ecs::components::ModelRenderer>(&monkeyModel, &lightingShader);
     scene.getRegistry().emplace<mach::ecs::components::FpsCharacterController>(playerEntity.handle());
+    scene.getRegistry().emplace<mach::ecs::components::ZoneTrigger>(playerEntity.handle());
     scene.setPlayerEntity(&playerEntity);
 
     mach::physics::createPhysicsBody(scene.getRegistry(), playerEntity.handle(), scene.physics.world, monkeyModel, true, 10.0f);
     // mach::physics::createPhysicsBody(scene.getRegistry(), roomEntity.handle(), scene.physics.world, roomModel, false, 0.0f);
 
     auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
-    anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);
+    anc.offset = glm::vec3(0.0f, 10.5f, 0.0f);
     anc.y = true;
     anc.x = true;
     anc.z = true;
 
     // scene.attachScript(playerEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+
+    // zones
+    auto zoneEntity = scene.createEntity("Zone 1");
+    auto& zone = scene.getRegistry().emplace<mach::ecs::components::Zone>(zoneEntity.handle());
+    zone.bounds.expandToFit(glm::vec3(0.0f, 0.0f, 0.0f));
+    zone.bounds.expandToFit(glm::vec3(10.0f, 10.0f, 10.0f));
+    zone.isActive = false;
 
     while(!window.shouldClose()) {
         fpsCounter.tick();

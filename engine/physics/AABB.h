@@ -18,6 +18,21 @@ struct AABB {
 
     glm::vec3 center() const { return (min + max) * 0.5f; }
     glm::vec3 halfExtents() const { return (max - min) * 0.5f; }
+    std::array<glm::vec3, 8> getCorners() const {
+        glm::vec3 c = center();
+        glm::vec3 e = halfExtents();
+
+        return {
+            c + glm::vec3(-e.x, -e.y, -e.z), // 0
+            c + glm::vec3(+e.x, -e.y, -e.z), // 1
+            c + glm::vec3(+e.x, +e.y, -e.z), // 2
+            c + glm::vec3(-e.x, +e.y, -e.z), // 3
+            c + glm::vec3(-e.x, -e.y, +e.z), // 4
+            c + glm::vec3(+e.x, -e.y, +e.z), // 5
+            c + glm::vec3(+e.x, +e.y, +e.z), // 6
+            c + glm::vec3(-e.x, +e.y, +e.z)  // 7
+        };
+    }
 };
 
 
