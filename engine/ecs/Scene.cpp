@@ -41,7 +41,10 @@ mach::ecs::Entity mach::ecs::Scene::createCameraEntity(const std::string &name, 
 {
     auto entity = createEntity(name);
     auto& c = registry.emplace<components::Transform>(entity.handle(), position, position, glm::vec3(1.0, 1.0, 1.0f));
-    registry.emplace<components::Camera>(entity.handle());
+    auto& cam = registry.emplace<components::Camera>(entity.handle());
+
+    // For testing top-down camera
+    cam.Pitch = -90.0f;
     return entity;
 }
 

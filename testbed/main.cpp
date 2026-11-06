@@ -70,6 +70,7 @@ int main()
     // scene.physics.setDrawWireframe(true);
     // scene.physics.setDrawWireframe(true);
     auto cameraEntity = scene.createCameraEntity("Camera", glm::vec3(0.0f, 1.0f, 7.0f));
+    scene.setProcessMouseInput(false);
     scene.activeCamera = &cameraEntity;
     scene.registerInputCallbacks();
 
@@ -120,7 +121,7 @@ int main()
     // mach::physics::createPhysicsBody(scene.getRegistry(), roomEntity.handle(), scene.physics.world, roomModel, false, 0.0f);
 
     auto& anc = scene.getRegistry().emplace<mach::ecs::components::Anchor>(cameraEntity.handle(), &playerEntity);
-    anc.offset = glm::vec3(0.0f, 1.5f, 0.0f);
+    anc.offset = glm::vec3(0.0f, 10.5f, 0.0f);
     anc.y = true;
     anc.x = true;
     anc.z = true;
