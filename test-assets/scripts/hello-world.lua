@@ -10,3 +10,7 @@ function on_update(entity, dt)
 --     local force = Vec3(0.01, 0.0, 0.0)
 --     translate(entity, force)
 end
+
+function on_interact(entity)
+   print("hello from on_interact")
+end

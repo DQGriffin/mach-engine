@@ -15,6 +15,7 @@
 #include "../engine/ecs/Entity.h"
 #include "../engine/ecs/components/Anchor.h"
 #include "../engine/ecs/components/FpsCharacterController.h"
+#include "../engine/ecs/components/Interactable.h"
 #include "../engine/ecs/components/MeshRender.h"
 #include "../engine/ecs/components/PendingDeletion.h"
 #include "../engine/ecs/components/PointLight.h"
@@ -36,6 +37,7 @@
 #include "../engine/serialization/PlainTextSceneSerializer.h"
 #include "../engine/ecs/components/Zone.h"
 #include "../engine/ecs/components/ZoneTrigger.h"
+#include "../engine/ecs/systems/ScriptSystem.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -125,6 +127,17 @@ int main()
     anc.y = true;
     anc.x = true;
     anc.z = true;
+
+    auto backpackEntity = scene.createEntity("Backpack");
+    auto backpackModel = assets.requireModel("/Users/griffin/dev/mach/test-assets/backpack/backpack.obj");
+    backpackEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(20.0f, 1.5f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    backpackEntity.addComponent<mach::ecs::components::ModelRenderer>(&monkeyModel, &lightingShader);
+    scene.attachScript(backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
+    // backpackEntity.addComponent<mach::ecs::components::ScriptComponent>();
+    // mach::ecs::systems::attachScriptToEntity(scene.getRegistry(), backpackEntity, "/Users/griffin/dev/mach/test-assets/scripts.hello-world.lua", scene.luaManager.lua);
+    std::string prompt = "int";
+    backpackEntity.addComponent<mach::ecs::components::Interactable>();
+
 
     // scene.attachScript(playerEntity, "/Users/griffin/dev/mach/test-assets/scripts/hello-world.lua");
 
@@ -277,6 +290,7 @@ int main()
         frameLimiter.tick();
     }
 
+    return 0;
     // mach::fs::Path path = mach::fs::Path("/Users/griffin/dependencies");
     // mach::archive::Archive::createArchive("/Users/griffin/test/archive_compressed.macha", path, true);
 

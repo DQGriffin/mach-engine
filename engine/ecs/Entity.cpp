@@ -4,6 +4,7 @@
 #include "Entity.h"
 
 #include "../math/vec.h"
+#include "components/Interactable.h"
 #include "components/Transform.h"
 #include "components/MeshRender.h"
 #include "components/Name.h"
@@ -86,4 +87,5 @@ namespace mach::ecs
     template mach::ecs::components::Transform& mach::ecs::Entity::addComponent<mach::ecs::components::Transform, glm::tvec3<float, (glm::precision)0>, glm::tvec3<float, (glm::precision)0>, glm::tvec3<float, (glm::precision)0>>(glm::tvec3<float, (glm::precision)0>&&, glm::tvec3<float, (glm::precision)0>&&, glm::tvec3<float, (glm::precision)0>&&);
     template bool mach::ecs::Entity::hasComponent<mach::ecs::components::ModelRenderer>() const;
     template mach::ecs::components::ModelRenderer& mach::ecs::Entity::getComponent<mach::ecs::components::ModelRenderer>();
+    template mach::ecs::components::Interactable& mach::ecs::Entity::addComponent<mach::ecs::components::Interactable>();
 }
