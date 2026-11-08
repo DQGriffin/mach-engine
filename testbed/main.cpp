@@ -17,6 +17,7 @@
 #include "../engine/ecs/components/FpsCharacterController.h"
 #include "../engine/ecs/components/Interactable.h"
 #include "../engine/ecs/components/MeshRender.h"
+#include "../engine/ecs/components/OverheadCharacterController.h"
 #include "../engine/ecs/components/PendingDeletion.h"
 #include "../engine/ecs/components/PointLight.h"
 #include "../engine/ecs/components/Transform.h"
@@ -115,7 +116,8 @@ int main()
     auto playerEntity = scene.createEntity("Player 1");
     playerEntity.addComponent<mach::ecs::components::Transform>(glm::vec3(8.0f, 25.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.3f));
     playerEntity.addComponent<mach::ecs::components::ModelRenderer>(&monkeyModel, &lightingShader);
-    scene.getRegistry().emplace<mach::ecs::components::FpsCharacterController>(playerEntity.handle());
+    // scene.getRegistry().emplace<mach::ecs::components::FpsCharacterController>(playerEntity.handle());
+    scene.getRegistry().emplace<mach::ecs::components::OverheadCharacterController>(playerEntity.handle());
     scene.getRegistry().emplace<mach::ecs::components::ZoneTrigger>(playerEntity.handle());
     scene.setPlayerEntity(&playerEntity);
 

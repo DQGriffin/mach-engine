@@ -88,6 +88,8 @@ add_library(mach STATIC library.cpp
         engine/ecs/components/Interactable.h
         engine/ecs/components/Interactable.h
         engine/ecs/systems/InteractableSystem.h
+        engine/ecs/components/OverheadCharacterController.h
+        engine/ecs/systems/OverheadCharacterControllerSystem.h
 )
 
 target_link_libraries(mach
@@ -102,7 +104,9 @@ target_link_libraries(mach PRIVATE liblua_static)
 add_executable(testbed
         testbed/main.cpp
         engine/ecs/components/Interactable.h
-        engine/ecs/systems/InteractableSystem.h)
+        engine/ecs/systems/InteractableSystem.h
+        engine/ecs/components/OverheadCharacterController.h
+        engine/ecs/systems/OverheadCharacterControllerSystem.h)
 
 file(GLOB IMGUI_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imGui/*.cpp"
@@ -133,6 +137,8 @@ add_executable(studio
         ${CMAKE_SOURCE_DIR}/dependencies/imGui/misc/cpp/imgui_stdlib.cpp
         engine/ecs/components/Interactable.h
         engine/ecs/systems/InteractableSystem.h
+        engine/ecs/components/OverheadCharacterController.h
+        engine/ecs/systems/OverheadCharacterControllerSystem.h
 )
 
 
