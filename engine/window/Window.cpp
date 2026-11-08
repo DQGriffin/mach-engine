@@ -2,6 +2,9 @@
 // Created by Dquavius Griffin on 5/21/25.
 //
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "../external/stb_truetype.h"
+
 #include "Window.h"
 
 #include "../input/input.h"

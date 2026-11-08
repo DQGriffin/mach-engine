@@ -39,6 +39,9 @@
 #include "../engine/ecs/components/Zone.h"
 #include "../engine/ecs/components/ZoneTrigger.h"
 #include "../engine/ecs/systems/ScriptSystem.h"
+#include "../engine/fs/fs.h"
+#include "../engine/rendering/text/Font.h"
+#include "../engine/rendering/text/TextRenderer.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -150,6 +153,12 @@ int main()
     zone.bounds.expandToFit(glm::vec3(10.0f, 10.0f, 10.0f));
     zone.isActive = false;
 
+    Shader textShader("/Users/griffin/mach-test-assets/shaders/text.vertex.glsl", "/Users/griffin/mach-test-assets/shaders/text.fragment.glsl");
+    auto fontData = mach::fs::readFileAsBytes("/Users/griffin/mach-test-assets/fonts/coolvetica-rg.otf");
+    mach::rendering::text::Font font;
+    font.load(fontData);
+    TextRenderer textRenderer(textShader);
+
     while(!window.shouldClose()) {
         fpsCounter.tick();
         // LOG_INFO(std::format("FPS: {}", fpsCounter.getFps()));
@@ -159,6 +168,8 @@ int main()
         window.setClearColor(backgroundColor);
         window.clear();
         lineRenderer.clear();
+
+        // glEnable(GL_DEPTH_TEST);
 
         scene.physics.step(deltaTime);
         scene.physics.world->debugDrawWorld();
@@ -282,6 +293,8 @@ int main()
             scene.getRegistry().destroy(entity);
             LOG_DEBUG("Entity deleted");
         }
+
+        textRenderer.drawText(font, std::format("FPS: {}", fpsCounter.average()), mach::vec2(50.f, 80.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         float currentTime = mach::time::getTime();
         deltaTime = currentTime - lastFrame;

@@ -90,6 +90,10 @@ add_library(mach STATIC library.cpp
         engine/ecs/systems/InteractableSystem.h
         engine/ecs/components/OverheadCharacterController.h
         engine/ecs/systems/OverheadCharacterControllerSystem.h
+        engine/rendering/text/Font.h
+        engine/rendering/text/TextVertex.h
+        engine/rendering/text/TextRenderer.cpp
+        engine/rendering/text/TextRenderer.h
 )
 
 target_link_libraries(mach
@@ -106,7 +110,8 @@ add_executable(testbed
         engine/ecs/components/Interactable.h
         engine/ecs/systems/InteractableSystem.h
         engine/ecs/components/OverheadCharacterController.h
-        engine/ecs/systems/OverheadCharacterControllerSystem.h)
+        engine/ecs/systems/OverheadCharacterControllerSystem.h
+        engine/rendering/text/Font.h)
 
 file(GLOB IMGUI_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imGui/*.cpp"
@@ -139,6 +144,7 @@ add_executable(studio
         engine/ecs/systems/InteractableSystem.h
         engine/ecs/components/OverheadCharacterController.h
         engine/ecs/systems/OverheadCharacterControllerSystem.h
+        engine/rendering/text/Font.h
 )
 
 
