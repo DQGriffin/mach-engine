@@ -23,6 +23,7 @@ namespace mach::ecs::systems
         scriptComponent.on_start = std::make_unique<sol::function>((*scriptComponent.env)["on_start"]);
         scriptComponent.on_update = std::make_unique<sol::function>((*scriptComponent.env)["on_update"]);
         scriptComponent.on_keypress = std::make_unique<sol::function>((*scriptComponent.env)["on_keypress"]);
+        scriptComponent.on_interact = std::make_unique<sol::function>((*scriptComponent.env)["on_interact"]);
 
         if (scriptComponent.on_start->valid())
         {
@@ -59,6 +60,17 @@ namespace mach::ecs::systems
         if (scriptComponent.on_keypress->valid())
         {
             (*scriptComponent.on_keypress)(entity->handle(), key);
+        }
+    }
+
+    inline void callOnInteractScript(entt::registry& registry, entt::entity entity)
+    {
+        if (!registry.valid(entity)) return;
+        auto& scriptComponent = registry.get<components::ScriptComponent>(entity);
+
+        if (scriptComponent.on_interact->valid())
+        {
+            (*scriptComponent.on_interact)(entity);
         }
     }
 }

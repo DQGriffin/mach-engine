@@ -14,6 +14,7 @@ namespace mach::ecs::components
         std::unique_ptr<sol::function> on_start;
         std::unique_ptr<sol::function> on_update;
         std::unique_ptr<sol::function> on_keypress;
+        std::unique_ptr<sol::function> on_interact;
     };
 }
 
