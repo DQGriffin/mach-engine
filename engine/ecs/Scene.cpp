@@ -14,6 +14,7 @@
 #include "systems/PhysicsSystem.h"
 #include "systems/CameraSystem.h"
 #include "systems/FpsCharacterControllerSystem.h"
+#include "systems/OverheadCharacterControllerSystem.h"
 #include "systems/InteractableSystem.h"
 #include "systems/ScriptSystem.h"
 #include "systems/ZoneSystem.h"
@@ -98,6 +99,7 @@ void mach::ecs::Scene::registerInputCallbacks()
         else
         {
             mach::ecs::systems::fps::processInput(key, registry, playerEntity, activeCamera);
+            mach::ecs::systems::overhead::processInput(key, registry, playerEntity, activeCamera);
         }
         // systems::processKeyboard(this->registry, this->activeCamera->handle(), key, this->deltaTime);
         return false;
