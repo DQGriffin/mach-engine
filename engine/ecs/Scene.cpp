@@ -71,7 +71,7 @@ void mach::ecs::Scene::update(float deltaTime)
     mach::ecs::systems::updateAnchorPositions(registry);
     mach::ecs::systems::updateZones(registry);
     mach::ecs::systems::drawZones(registry, debugLineRenderer);
-    mach::ecs::systems::interactNearby(registry, playerEntity);
+    // mach::ecs::systems::interactNearby(registry, playerEntity);
 }
 
 void mach::ecs::Scene::registerInputCallbacks()
@@ -82,6 +82,11 @@ void mach::ecs::Scene::registerInputCallbacks()
         {
             isFlyCam = !isFlyCam;
         }
+        else if (key == MACH_KEY_E)
+        {
+            mach::ecs::systems::interactNearby(registry, playerEntity);
+        }
+
         return false;
     }, input::CallbackPriority::Gameplay, input::KeyEventTrigger::Released);
 
